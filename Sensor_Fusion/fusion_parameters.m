@@ -68,7 +68,6 @@ r_IMU = randi([0 100]);
 covA = 800;
 covG = 0.0001;
 covM = 80;
-% covP = 0.01;
 covP = 34;
 covV = 0.0464;
 
@@ -77,31 +76,22 @@ covV = 0.0464;
 % covA=175*10^(-6)*9.81;
 % covG=.004;
 
-% covA = 0;
-% covG = 0;
-% covM = 0;
-% covP = 34;
-% covV = 0;
-
 %% Filter Initialization
 ref_location = [40.437675, -86.943750, 680]; % LLA initial position
 ref_mag_field = [19.78899, -1.607, 48.9449]; % NED magnetic field
 
 % initial state of the filter
 initstate = zeros(28,1);
-%orientation
-initstate(1:4) = [1 0 0 0]; 
-% % position
-% initstate(8:10) = ref_location;
-% magnetic field
-initstate(23:25) = ref_mag_field;
+initstate(1:4) = [1 0 0 0];       % orientation
+initstate(23:25) = ref_mag_field; % magnetic field
 
-% filter.QuaternionNoise = [1 1 1 1].*1e-6;
-% filter.AngularVelocityNoise = [1 1 1].*1e-6;
-% filter.PositionNoise = [1 1 1].*1e-6;
-% filter.VelocityNoise = [1 1 1].*1e-6;
-% filter.AccelerationNoise = [1 1 1].*1e-6;
-% filter.GyroscopeBiasNoise = [1 1 1].*1e-10;
-% filter.AccelerometerBiasNoise = [1 1 1].*1e-6;
-% filter.GeomagneticVectorNoise = [1 1 1].*1e-6;
-% filter.MagnetometerBiasNoise = [1 1 1].*1e-6;
+noise_state = zeros(28, 1);
+noise_state(1:4) = QuaternionNoise;
+noise_state(5:7) = AngularVelocityNoise;
+noise_state(8:10) = PositionNoise;
+noise_state(11:13) = VelocityNoise;
+noise_state(14:16) = AccelerationNoise;
+noise_state(17:19) = GyroscopeBiasNoise;
+noise_state(20:22) = AccelerometerBiasNoise;
+noise_state(23:25) = GeomagneticVectorNoise;
+noise_state(26:28) = MagnetometerBiasNoise;
