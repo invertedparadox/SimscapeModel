@@ -32,6 +32,8 @@ function readData(src, ~)
     
     if src.UserData.Count > (8*(Startup_Size + Sample_Size+10))
         configureCallback(src, "off");
+        data = src.UserData.Data;
+        save("result.mat", "data");
 
 %         filename = 'motor_data.mat';
 %         load(filename);
