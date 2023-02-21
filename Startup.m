@@ -128,6 +128,7 @@ REF_YAW_MAX = 1.25; % rad/s
 %% True Constants
 deg2rad = 0.01745329; % multiply to convert from deg to rad (rad/deg)
 rpm2radps = 0.104719755; % multipe to convert RPM to rad/s (rad/RPM*s)
+lbin2kgm = 4.44822162/0.0254; % (N*in)/(lb*m)
 g = 9.81; % m/s^2
 rho = 1.225; % kg/m^3
 Tair = 300; % K
@@ -137,7 +138,14 @@ min_velocity_regen = 1.4; % m/s
 %% Vehicle Constants
 % Vehicle Body
 m = 300 + sum([10 10 10 10] .* motor_enable); % kg
-Iveh = [242581 -12979 -144891; -12979 1520924 -2283; -144891 -2283  1602598]./1000;
+
+%	Izz = 41782359388.78          Izx = 1218939069.69       Izy = -41283226162.43	
+%	Ixz = 1218939069.69            Ixx = 207923119475.86   Ixy = -323722590.99 
+% 	Iyz = -41283226162.43        Iyx = -323722590.9          Iyy = 209310186667.15
+% Iveh = [242581 -12979 -144891; -12979 1520924 -2283; -144891 -2283  1602598]./1000;
+
+Iveh = [41.78 1.22 -41.28; 1.22 207.92 -0.32; -41.28 -0.32 209.31]; % kg*m^2
+
 l = [0.772 0.772]; % vehicle wheelbase for PER23 [front rear] (m)
 s = [0.649 0.621]; % vehicle half track width for PER23 [front rear] (m)
 dZ = 0.295; % m
@@ -177,11 +185,11 @@ rad_air_vol = 0.01; % m^3
 rad_liq_vol = 0.000157; % m^3
 
 % Suspension
-Kz = 35000; % N/m
-F0z = m*g/4; % N
+Kz = 250*lbin2kgm; % N/m spring constant per wheel
+F0z = [0 0]; % N preload per wheel
 Hmax = 0.05715 + 0.0225; % m
 AntiSwayR = 0.0635; % m
-AntiSwayNtrlAng = 0; % rad
+AntiSwayNtrlAng = pi/4; % rad
 AntiSwayTrsK = 1218; % Nm/rad
 ActSuspDutyCycle = 1; % none
 
