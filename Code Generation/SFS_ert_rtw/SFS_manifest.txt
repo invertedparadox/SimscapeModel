@@ -1,8 +1,0 @@
-This file is the manifest for the generated code from model 'SFS'.
-C:\Users\Inver\MATLAB Drive\Top Model - Master\Sensor_Fusion\SFS_ert_rtw\SFS.c
-C:\Users\Inver\MATLAB Drive\Top Model - Master\Sensor_Fusion\SFS_ert_rtw\SFS_data.c
-C:\Users\Inver\MATLAB Drive\Top Model - Master\Sensor_Fusion\SFS_ert_rtw\ert_main.c
-C:\Users\Inver\MATLAB Drive\Top Model - Master\Sensor_Fusion\SFS_ert_rtw\SFS.h
-C:\Users\Inver\MATLAB Drive\Top Model - Master\Sensor_Fusion\SFS_ert_rtw\SFS_types.h
-C:\Users\Inver\MATLAB Drive\Top Model - Master\Sensor_Fusion\SFS_ert_rtw\rtwtypes.h
-C:\Users\Inver\MATLAB Drive\Top Model - Master\Sensor_Fusion\SFS_ert_rtw\SFS_manifest.txt
