@@ -1,0 +1,6 @@
+%implements s60_b0_6t5zc_ModuleConstants "C"
+
+%function ModuleConstants(block) Output
+
+#define car_model_period_g (0.015)
+%endfunction
