@@ -7,8 +7,8 @@
 % Run startup.m before running this file, ensure sweep_data.mat is up to date)
 clearvars -except S1 S2 S3 S4 deg2rad l steer_slope MAX_V MIN_V dv d0 CENTER_STEER_ANGLE_MAX ALL_SWEEP_DATA TOY_correction_factor
 clc
-load("..\..\sweep_data.mat")
-load("..\PROCESSED_DATA\Sweep_Tables.mat");
+load("sweep_data.mat")
+load("PROCESSED_DATA\Sweep_Tables.mat");
 
 %% Simulation Conditions
 num1 = 392; % total number of data points collected, including buffer points
@@ -175,6 +175,10 @@ save("..\PROCESSED_DATA\Yaw_Tables.mat")
 % scatter3(velocity(:), steering(:), yaw_rate_TOY(:))
 % scatter3(velocity(:), steering(:), TOY_error(:))
 % scatter3(velocity(:), steering(:), TOY_correction_table(:))
+
+% xlabel("Velocity (m/s)")
+% ylabel("Steeting Angle (deg)")
+% zlabel("Yaw Rate (rad/s)")
 
 % xlabel("Planar CoG Velocity (m/s)")
 % ylabel("Center Column Steering Angle (deg)")
