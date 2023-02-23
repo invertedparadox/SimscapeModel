@@ -6,9 +6,10 @@ clear
 clc
 
 %% Samples Rates
-fusion_t = 0.005; % sensor fusion sample period (s)
-gps_hz = 1/25; % gps sample period (s)
-imu_hz = 0.015; % imu sample period (s)
+fusion_t = 0.01; % sensor fusion sample period (s)
+gps_hz = 1/100; % gps sample period (s)
+imu_hz = fusion_t; % imu sample period (s)
+gps_ratio = gps_hz / fusion_t;
 
 %% Coordinate Transformations
 phi = 45; % deg
@@ -46,13 +47,13 @@ MAG_SKEW = [ 100, 0, 0; 0, 100, 0; 0, 0, 100 ]; % %
 
 ACC_VEL_WALK = [ 0, 0, 0 ]; % (m/s^2)/sqrt(Hz)
 ACC_BIAS_INSTABILITY = [ 0, 0, 0 ]; % (m/s^2)
-ACC_WALK = [ 0, 0, 0 ]; % (m/s^2)*sqrt(Hz)
+ACC_WALK = [ 0.01, 0.15, 0.01 ]; % (m/s^2)*sqrt(Hz)
 
 GYR_ANG_WALK = [ 0, 0, 0 ]; % (rad/s)/sqrt(Hz)
 GYR_BIAS_INSTABILITY = [ 0, 0, 0 ]; % (rad/s)
-GYR_WALK = [ 0, 0, 0 ]; % (rad/s)*sqrt(Hz)
+GYR_WALK = [ 0.0001, 0.0001, 0.0001 ]; % (rad/s)*sqrt(Hz)
 
-MAG_WHITE = [ 0, 0, 0 ]; % uT/sqrt(Hz)
+MAG_WHITE = [ 0.1, 0.1, 0.1 ]; % uT/sqrt(Hz)
 MAG_BIAS_INSTABILITY = [ 0, 0, 0 ]; % uT
 MAG_WALK = [ 0, 0, 0 ]; % uT*sqrt(Hz)
 
@@ -68,11 +69,24 @@ MAG_T_SCALE = [ 0, 0, 0 ]; %/degC
 r_IMU = randi([0 100]);
 
 % Sensor Covariance
-covA = 800;
-covG = 0.0001;
-covM = 80;
-covP = 34;
-covV = 0.0464;
+% covA = 800;
+% covG = 0.0001;
+% covM = 80;
+% covP = 34;
+% covV = 0.0464;
+
+% covA = 4.4;
+% covG = 0.0018;
+% covM = 80;
+% covP = 1;
+% covV = 0.0464;
+
+covA = 4.0095;
+covG = 0.018;
+covM = 0.99;
+covP = 1;
+covV = 0.1747;
+
 
 %noise measurements found in data sheet
 % bmm150 bmi088 NEO-M9N
@@ -110,4 +124,4 @@ noise_state(23:25) = GeomagneticVectorNoise;
 noise_state(26:28) = MagnetometerBiasNoise;
 
 %% Cleanup & Saving
-save("..\PROCESSED_DATA\Sensor_Tables.mat")
+save("PROCESSED_DATA\Sensor_Tables.mat")
