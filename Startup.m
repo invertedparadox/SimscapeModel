@@ -1,6 +1,6 @@
 %% Startup
-% clear
-% clc
+clear
+clc
 
 %% Load Table Data
 %sscfluids_ev_battery_cooling
@@ -10,26 +10,27 @@ load("Simulation_Data_Input\PROCESSED_DATA\Tire_Tables.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Suspension_Tables.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Yaw_Tables.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Motor_Tables.mat");
-load("Simulation_Data_Input\PROCESSED_DATA\VehFdbk.mat");
+load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Sensor_Tables.mat");
-
-%% Generate Extra Data
-VehFdbk_Void = Simulink.Bus.createObject(VehFdbk_Struct);
-VehFdbk = evalin('base', VehFdbk_Void.busName);
-
-event_names = ["acceleration", "skidpad", "austria_endurance", "l_square", "r_square", "short_oc", "grand_prix", "track_Left", "track_Right", "long_straight"];
-selected_track = ALL_TRACK_DATA.(event_names(7));
-
-sweep_names = ["ccw_steering"];
-selected_sweep = ALL_SWEEP_DATA.(sweep_names(1));
 
 %% Simulation Top Parameters
 YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
 TVS_ENABLE = 1;  % Enable TVS when set to 1
-traction_enable = 1; % Enable variable objective function coefficients
-motor_enable = [0 0 1 1]; % Enable motors (bool)
-t = 0.015; % step size of all discrete systems (s)
+TRACTION_ENABLE = 1; % Enable variable objective function coefficients
+MOTOR_ENABLE = [0 0 1 1]; % Enable motors (bool)
+
+selected_track = ALL_TRACK_DATA.(event_names(7));
+selected_sweep = ALL_SWEEP_DATA.(sweep_names(1));
+
 veh_vel = 7; % simulation target PCoGV (m/s)
+
+%% Simulation Sample Rates
+t = 0.015; % torque vectoring step size (s)
+driver_t = 0.015; % driver reaction time (s)
+fusion_t = 0.01; % sensor fusion sample period (s)
+gps_hz = 0.01; % gps sample period (s)
+imu_hz = fusion_t; % imu sample period (s)
+gps_ratio = gps_hz / imu_hz; % ratio of gps sample period to imu sample period
 
 %% Simulation Strange Parameters
 LONGVL = 16.7; % m/s
@@ -57,25 +58,18 @@ ang_acc_drop_limit = 10; % rad/s^2
 ang_acc_hystersesis = 0.1; % rad/s^2
 TOY_correction_factor = 0.1; % increase/decrease in yaw rate to bring reference yaw rate closer to TOY (time optimal yaw rate)
 yaw_bias = 0.01;
-alpha_error = 0.1;
+% alpha_error = 0.1;
 
 torque_sat_const = 0.5;
 default_power_dist = [0.25, 0.25, 0.25, 0.25]; % percent
 
-battery_current_hysteresis = 2; % A
+% battery_current_hysteresis = 2; % A
 battery_power_hysteresis = 500; % W
-torque_down_constant = 0.75; % A
+% torque_down_constant = 0.75; % A
 power_state = 0; % bool
 max_K = 4095; % none
 
-TRQ_CMD_PL_SEARCH_RANGE = 0:0.001:1;
-
-%% Data Processing Misc Parameters
-voltages = [340 330 320 310 300 290 280 270 260 250 240 230 220 210 190 180 170 160 150 140 130 120 110 100 90 80 70 60]; % the 28 voltages that plettenberg tested at
-Tx_resolution = 26; % Number of torque breakpoints in lookup tables
-RPM_resolution = 107; % Number of angular velocity breakpoints in lookup tables
-V_resolution = 26; % Number of voltage breakpoints in lookup tables
-num_datasets = 28; % number of sweeps for motor data from plettenberg
+% TRQ_CMD_PL_SEARCH_RANGE = 0:0.001:1;
 
 %% Signal Max/Min Clamping
 % navigation sensors
@@ -113,8 +107,8 @@ FZ_MIN = 200; % N
 % tvs saturation
 ABS_MIN_TORQUE = [0 0 0 0]; % Nm
 ABS_MAX_TORQUE = [25 25 25 25]; % Nm
-ABS_MAX_TRQ_CMD = dot(ABS_MAX_TORQUE, motor_enable);
-ABS_MIN_TRQ_CMD = sum(motor_enable) * 0.5 * dTx;
+ABS_MAX_TRQ_CMD = dot(ABS_MAX_TORQUE, MOTOR_ENABLE);
+ABS_MIN_TRQ_CMD = sum(MOTOR_ENABLE) * 0.5 * dTx;
 MAX_CURRENT = DCL_MAX; % A
 MIN_CURRENT = 0.1; % A
 MAX_DRIVER_INPUT = 1; % unitless
@@ -137,12 +131,12 @@ min_velocity_regen = 1.4; % m/s
 
 %% Vehicle Constants
 % Vehicle Body
-m = 300 + sum([10 10 10 10] .* motor_enable); % kg
+m_unsprung = [10 10 10 10];
+m_all = 300 + sum(m_unsprung .* MOTOR_ENABLE); % kg
 
 %	Izz = 41782359388.78          Izx = 1218939069.69       Izy = -41283226162.43	
 %	Ixz = 1218939069.69            Ixx = 207923119475.86   Ixy = -323722590.99 
 % 	Iyz = -41283226162.43        Iyx = -323722590.9          Iyy = 209310186667.15
-% Iveh = [242581 -12979 -144891; -12979 1520924 -2283; -144891 -2283  1602598]./1000;
 
 Iveh = [41.78 1.22 -41.28; 1.22 207.92 -0.32; -41.28 -0.32 209.31]; % kg*m^2
 
@@ -154,7 +148,9 @@ Af = 1.0221; % Frontal area of vehicle with respect to aerodynamics (m^2)
 Cd = 1.149; % Coefficient of drag (dimensionless)
 cl = 2.11014; % Coefficient of lift (dimensionless)
 
-J_z = 75; % kg*m^2
+J_z = Iveh(3,3); % kg*m^2
+
+phi = 45; % deg angle of firewall with resepct to horizontal
 
 % Powertrain
 Sun_gear_teeth_count = 27; % number of teeth on PER23 sun gear
@@ -200,7 +196,7 @@ S3 = 0.6535; % rack displacement to tire angle x coefficient (deg/mm)
 S4 = 0.1061; % rack displacement to tire angle constant coefficient (deg)
 
 % Tire & Brake
-m_unsprung = [6 6 6 6] + ([10 10 10 10] .* motor_enable); % kg
+m_unsprung = [6 6 6 6] + ([10 10 10 10] .* MOTOR_ENABLE); % kg
 WIDTH = 0.1524; % m
 RIM_RADIUS = 0.1524; % m
 RE = 0.223; % m
@@ -231,30 +227,11 @@ C3 = -0.003943; % lateral tire coefficient of friction x coefficient (1/N)
 C4 = 3.6340; % lateral tire coefficient of friction constant coefficient (none)
 
 %% TVS Tunable Parameters
-deadband_angle = Simulink.Parameter(12);
-deadband_angle.Complexity = 'real';
-deadband_angle.CoderInfo.StorageClass = 'Model default';
-deadband_angle.DataType = 'auto';
-
-Kv = Simulink.Parameter(3);
-Kv.Complexity = 'real';
-Kv.CoderInfo.StorageClass = 'Model default';
-Kv.DataType = 'auto';
-
-Ku = Simulink.Parameter(0);
-Ku.Complexity = 'real';
-Ku.CoderInfo.StorageClass = 'Model default';
-Ku.DataType = 'auto';
-
-P = Simulink.Parameter(1);
-P.Complexity = 'real';
-P.CoderInfo.StorageClass = 'Model default';
-P.DataType = 'auto';
-
-I = Simulink.Parameter(0);
-I.Complexity = 'real';
-I.CoderInfo.StorageClass = 'Model default';
-I.DataType = 'auto';
+deadband_angle = 12;
+Kv = 3;
+Ku = 0;
+P = 1;
+I = 0;
 
 V_target = [0 3 6 9 12 15 18 21 25 31];
 max_yaw_field = [0.67 0.67 0.67 0.83 0.57 0.62 0.377 0.4245 0.425 0.425];
@@ -267,14 +244,12 @@ acc_IC = 0; % m/s^2
 ang_IC = 0; % rad
 ang_vel_IC = 0; % rad/s
 
-GPS_pos_IC = [40.437675; -86.943750; 680]; % deg deg m
-
 % power sensors
 battery_voltage_IC = 336; % V
 battery_current_IC = 0; % A
 motor_voltage_IC = 336; % V
 motor_current_IC = 0; % A
-dcl_IC = 150; % A
+dcl_IC = 140; % A
 ccl_IC = 0;
 
 % temperature sensors
@@ -287,17 +262,26 @@ battery_FT_IC = 300; % K
 omega_IC = 0; % rad/s
 theta_IC = 0; % deg
 shock_length_IC = 0.1; % m
-Fz_IC = m*g/4; % N
+Fz_IC = m_all*g/4; % N
+
+% vehicle initial conditions
+BattCap_I = 16;
+zdot_tires_IC = 0; % m/s
+z_tire_IC = 0; % m
 
 % tvs initial conditions
 Tx_I = 0; % Nm
 windup_I = 0; % bool
 motor_efficiency_IC = 0.31; % none
 
-% vehicle initial conditions
-BattCap_I = 16;
-zdot_tires_IC = 0; % m/s
-z_tire_IC = 0; % m
+% sensor fusion initial conditions
+location_lla_IC = [40.437675, -86.943750, 680]; % [deg deg m]
+mag_field_IC = [19.78899, -1.607, 48.9449]; % NED magnetic field uT
+gps_counter_IC = 0;
+covarience_matrix_IC = eye(28)./1000;
+state_IC = zeros(28,1);
+state_IC(1:4) = [1 0 0 0];       % orientation
+state_IC(23:25) = mag_field_IC; % magnetic field
 
 %% Driver Model
 % Reference Generation
@@ -309,11 +293,3 @@ q_thresh = 0.05;            % threshhold between quadrants in cartesian plane
 
 % indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
 indicies = [3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4];
-
-%% PCoGV & CCSA Sweep Simulation
-MAX_V = 18; % maximum velocity used in simulation (m/s)
-MIN_V = 5; % minimum velocity used in simulation (m/s)
-dv = 1; % velocity increment used in simulation (m/s)
-d0 = 5; % center column steering angle (CCSA) increment used in simulation (deg)
-dt_ON = 7.5;  % time (s) that each data point is active
-dt_OFF = 4.5; % time (s) between different velocities for vehicle recovery

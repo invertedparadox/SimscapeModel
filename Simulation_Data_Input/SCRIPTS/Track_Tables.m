@@ -1,5 +1,5 @@
 %% Startup
-clearvars -except dx event_names
+clearvars -except dx
 clc;
 
 %% Parameters
@@ -7,8 +7,12 @@ clc;
 Xi = 0;
 Yi = 0;
 
+% all generated tracks
+event_names = ["acceleration", "skidpad", "austria_endurance", "l_square", "r_square", "short_oc", "grand_prix", "track_Left", "track_Right", "long_straight"];
+sweep_names = ["ccw_steering"];
+
 % path to all track files
-PATH = "../RAW_DATA/";
+PATH = "RAW_DATA/";
 
 % selected track to update or add
 track_name = event_names(10); % notepad file name
@@ -26,7 +30,7 @@ opts = setvaropts(opts, "s", "EmptyFieldRule", "auto");
 % Import the data
 All_data = readtable(PATH + track_name + ".txt", opts);
 track_xy = table2array(All_data(:,2:end));
-load("..\PROCESSED_DATA\Track_Tables.mat");
+load("PROCESSED_DATA\Track_Tables.mat");
 
 %% Initialize Variables
 if All_data{1, 1} == "Left"
@@ -199,9 +203,9 @@ end
 ALL_TRACK_DATA.(track_name) = [m' y3' x3' r' turn_direction' yc', xc', psi'];
 
 %% Save Track Data
-clearvars -except ALL_TRACK_DATA
+clearvars -except ALL_TRACK_DATA event_names sweep_names
 
-save("..\PROCESSED_DATA\Track_Tables.mat")
+save("PROCESSED_DATA\Track_Tables.mat")
 
 %% Data Viewing
 % plot(y3, x3)

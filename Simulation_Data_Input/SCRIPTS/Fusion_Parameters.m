@@ -5,21 +5,6 @@
 clear
 clc
 
-%% Samples Rates
-fusion_t = 0.01; % sensor fusion sample period (s)
-gps_hz = 1/100; % gps sample period (s)
-imu_hz = fusion_t; % imu sample period (s)
-gps_ratio = gps_hz / fusion_t;
-
-%% Coordinate Transformations
-phi = 45; % deg
-
-IMU_ANGLE = [0 (phi - 180) 0];
-MAG_ANGLE = [180 (180 - phi) 0];
-
-IMUNED2VNED = rotmat(quaternion(IMU_ANGLE,"eulerd","XYZ","frame"),"frame");
-MAGNED2VNED = rotmat(quaternion(MAG_ANGLE,"eulerd","XYZ","frame"),"frame");
-
 %% Sensor Modeling Parameters
 % GPS
 GPS_Z_ACCURACY = 1.6; % m
@@ -47,7 +32,7 @@ MAG_SKEW = [ 100, 0, 0; 0, 100, 0; 0, 0, 100 ]; % %
 
 ACC_VEL_WALK = [ 0, 0, 0 ]; % (m/s^2)/sqrt(Hz)
 ACC_BIAS_INSTABILITY = [ 0, 0, 0 ]; % (m/s^2)
-ACC_WALK = [ 0.01, 0.15, 0.01 ]; % (m/s^2)*sqrt(Hz)
+ACC_WALK = [ 0.01, 0.01, 0.01 ]; % (m/s^2)*sqrt(Hz)
 
 GYR_ANG_WALK = [ 0, 0, 0 ]; % (rad/s)/sqrt(Hz)
 GYR_BIAS_INSTABILITY = [ 0, 0, 0 ]; % (rad/s)
@@ -87,21 +72,7 @@ covM = 0.99;
 covP = 1;
 covV = 0.1747;
 
-
-%noise measurements found in data sheet
-% bmm150 bmi088 NEO-M9N
-% covA=175*10^(-6)*9.81;
-% covG=.004;
-
-%% Filter Initialization
-ref_location = [40.437675, -86.943750, 680]; % LLA initial position
-ref_mag_field = [19.78899, -1.607, 48.9449]; % NED magnetic field
-
-% initial state of the filter
-initstate = zeros(28,1);
-initstate(1:4) = [1 0 0 0];       % orientation
-initstate(23:25) = ref_mag_field; % magnetic field
-
+%% Filter Noise Parameters
 QuaternionNoise = [1e-06 1e-06 1e-06 1e-06];     % none
 AngularVelocityNoise = [0.005 0.005 0.005];      % (rad/s)²
 PositionNoise = [1e-06 1e-06 1e-06];             % m²

@@ -2,6 +2,13 @@
 clearvars -except rpm2radps num_datasets voltages Tx_resolution RPM_resolution V_resolution MOTOR_VOLTAGE_MAX ABS_MAX_TORQUE MAX_MOTOR_CURRENT
 clc;
 
+%% Parameters
+voltages = [340 330 320 310 300 290 280 270 260 250 240 230 220 210 190 180 170 160 150 140 130 120 110 100 90 80 70 60]; % the 28 voltages that plettenberg tested at
+Tx_resolution = 26; % Number of torque breakpoints in lookup tables
+RPM_resolution = 107; % Number of angular velocity breakpoints in lookup tables
+V_resolution = 26; % Number of voltage breakpoints in lookup tables
+num_datasets = 28; % number of sweeps for motor data from plettenberg
+
 %% Initialize Variables
 % raw data
 all_voltage = []; % all raw voltage measurements (V)
