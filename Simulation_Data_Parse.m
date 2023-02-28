@@ -4,17 +4,19 @@
 %% Extract Bus Data
 TV_OUTPUT = out.TV_Output;
 MCPL_OUTPUT = out.MCPL_Output;
+Reference_Signals = out.Navigation_Reference;
 Reference_Generator = out.Reference_Generator;
 Digital_Signals = out.Digital_Signals;
 time = Digital_Signals.Navigation_Sensors.gyro.Time;
 time_15 = TV_OUTPUT.ub.Time;
 
 %% Vehicle Dynamics
-yaw_rates = Digital_Signals.Navigation_Sensors.gyro.Data(:,3);
+yaw_rates = Reference_Signals.Chassis_AngularVelocity.Data(:,3);
 ref_yaw_rates = TV_OUTPUT.ref_yaw.Data;
 
-X = Digital_Signals.Navigation_Sensors.pos.Data(:,1);
-Y = Digital_Signals.Navigation_Sensors.pos.Data(:,2);
+X = Reference_Signals.Chassis_Position.X.Data(:);
+Y = Reference_Signals.Chassis_Position.Y.Data(:);
+
 X_ref = Reference_Generator.x_ref.Data;
 Y_ref = Reference_Generator.y_ref.Data;
 
@@ -60,7 +62,7 @@ legend("Reference","Actual")
 
 % steering
 subplot(2,2,2)
-plot(time, steer)
+plot(time_15, steer)
 
 xlabel("time (s)")
 ylabel("Steering Angle (deg)")
@@ -68,13 +70,13 @@ legend("Actual","TOY Steering Angle")
 
 % omega
 subplot(2,2,3)
-plot(time, omega(:,1))
+plot(time_15, omega(:,1))
 hold on
-plot(time, omega(:,2))
+plot(time_15, omega(:,2))
 hold on
-plot(time, omega(:,3))
+plot(time_15, omega(:,3))
 hold on
-plot(time, omega(:,4))
+plot(time_15, omega(:,4))
 
 xlabel("time (s)")
 ylabel("Wheel Speed (rad/s)")
@@ -82,13 +84,13 @@ legend("FL","FR","RL","RR")
 
 % Fz
 subplot(2,2,4)
-plot(time, Fz(:,1))
+plot(time_15, Fz(:,1))
 hold on
-plot(time, Fz(:,2))
+plot(time_15, Fz(:,2))
 hold on
-plot(time, Fz(:,3))
+plot(time_15, Fz(:,3))
 hold on
-plot(time, Fz(:,4))
+plot(time_15, Fz(:,4))
 
 xlabel("time (s)")
 ylabel("Normal Force (N)")
@@ -143,7 +145,7 @@ legend("Reference","Actual")
 subplot(2,2,4)
 plot(time_15, ref_yaw_rates)
 hold on
-plot(time_15, yaw_rates)
+plot(time, yaw_rates)
 
 xlabel("time (s)")
 ylabel("Yaw Rate (rad/s)")
@@ -154,7 +156,7 @@ figure(3)
 
 % distance error
 subplot(2,2,1)
-plot(time, dis_error)
+plot(time_15, dis_error)
 
 xlabel("time (s)")
 ylabel("Distance (m)")
@@ -168,14 +170,14 @@ ylabel("Yaw Rate (rad/s)")
 
 % orientation error
 subplot(2,2,3)
-plot(time, psi_error)
+plot(time_15, psi_error)
 
 xlabel("time (s)")
 ylabel("Angle (rad)")
 
 % turning radius error
 subplot(2,2,4)
-plot(time, rad_error)
+plot(time_15, rad_error)
 
 xlabel("time (s)")
 ylabel("Turning Radius (m)")

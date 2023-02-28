@@ -1,5 +1,5 @@
 %% Startup
-clearvars -except dx
+clearvars -except dx limit_velocity_coeffs
 clc;
 
 %% Parameters
@@ -15,7 +15,7 @@ sweep_names = ["ccw_steering"];
 PATH = "RAW_DATA/";
 
 % selected track to update or add
-track_name = event_names(10); % notepad file name
+track_name = event_names(1); % notepad file name
 
 %% Set up the Import Options and import the data
 opts = delimitedTextImportOptions("NumVariables", 3);
@@ -56,17 +56,27 @@ x0 = 0;
 y0 = 0;
 prev_turn = All_data{1, 1};
 counter = 2;
+di = [1000];
+limit_velocity = [];
 
 %% Generate Track
-for i = 1:num_sections
+for i = 1:num_sections   
     % generate array of distance to decimate the current track segment
     num3 = floor(track_xy(i, 1) / dx);
-    distances = [(0:dx:dx*num3)]' + track_data(counter-1, 1);
+    distances = (0:dx:dx*num3)' + track_data(counter-1, 1);
 
     if distances(end) ~= (track_xy(i, 1) + track_data(counter-1, 1))
         distances(end+1) = (track_xy(i, 1) + track_data(counter-1, 1));
         num3 = num3 + 1;       
     end
+
+    turning_radius = All_data{i, 3};
+
+    if turning_radius == 0
+        turning_radius = 106;
+    end
+    
+    limit_velocity(end+1) = limit_velocity_coeffs(1) + (limit_velocity_coeffs(2)*log(turning_radius)) + (limit_velocity_coeffs(3)*turning_radius);
 
     track_data(counter:counter+num3, 1) = distances;
     counter = counter + num3 + 1;
@@ -106,6 +116,7 @@ for i = 1:num_sections
 
     % iterate over every distance, and figure out the x & y coordinate
     for j = 1:num_coordinates-1
+        di(end+1) = num_coordinates - j;
         xc(end+1) = x1(end);
         yc(end+1) = y1(end);
         % solve different geometric problem depending on steering
@@ -200,10 +211,14 @@ for i = 1:num_sections
     end
 end
 
-ALL_TRACK_DATA.(track_name) = [m' y3' x3' r' turn_direction' yc', xc', psi'];
+All_data(end+1,:) = All_data(end,:);
+limit_velocity(end+1) = limit_velocity(end);
+All_data.v = limit_velocity';
+MIN_TRACK_DATA.(track_name) = All_data{:,2:end};
+ALL_TRACK_DATA.(track_name) = [m' y3' x3' r' turn_direction' yc', xc', psi', di'];
 
 %% Save Track Data
-clearvars -except ALL_TRACK_DATA event_names sweep_names
+clearvars -except ALL_TRACK_DATA event_names sweep_names MIN_TRACK_DATA
 
 save("PROCESSED_DATA\Track_Tables.mat")
 

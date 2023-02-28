@@ -150,7 +150,7 @@ max_torque_grid_340V = max_torque_grid .* voltage_grid./max(max(voltage_grid));
 
 %% Cleaning up & Saving
 clearvars -except CMD_grid efficiency_grid max_torque_grid rpm_sweep torque_sweep voltage_sweep I_grid
-save("..\PROCESSED_DATA\Motor_Tables.mat");
+save("PROCESSED_DATA\Motor_Tables.mat");
 
 %% Data Viewing
 % scatter3(all_rpm, all_torque, all_efficiency)

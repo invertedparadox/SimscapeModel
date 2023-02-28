@@ -19,7 +19,7 @@ my_sweep = polyval(p_my, Fz_sweep); % lateral coefficient of friction
 %% Cleanup & Saving
 clearvars -except Fz_sweep kx_sweep cy_sweep mx_sweep my_sweep
 
-save("..\PROCESSED_DATA\Tire_Tables.mat");
+save("PROCESSED_DATA\Tire_Tables.mat");
 
 %% Data Viewing
 % scatter(Fz_sweep, kx_sweep)

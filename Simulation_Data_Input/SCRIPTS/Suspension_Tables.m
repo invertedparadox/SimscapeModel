@@ -53,7 +53,7 @@ theta_right = deg2rad.*((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4);
 
 clearvars -except f_act_susp_cz f_act_susp_zdot_bpt f_act_susp_duty_bpt theta_sweep theta_right theta_left
 
-save("..\PROCESSED_DATA\Suspension_Tables.mat")
+save("PROCESSED_DATA\Suspension_Tables.mat")
 
 %% Data Viewing
 % scatter(f_act_susp_zdot_bpt, f_act_susp_cz(1,:))

@@ -160,15 +160,21 @@ possible_corrections = [abs(TOY_error(:)) (TOY_correction_factor.*ones(num3*num2
 TOY_correction_table = sign(TOY_error(:)).*min(possible_corrections)';
 TOY_correction_table = reshape(TOY_correction_table, [num3, num2]);
 
+%% Minimum Turning Radius
+[max_yaw, idx_yaw] = max(yaw_rate);
+limit_velocity = velocity(1,:);
+R_sweep = limit_velocity ./ max_yaw;
+limit_velocity_coeffs = [-1.552 4.137 0.1161];
+
 %% Final Calculations
 skidpad_radius = 7.5.*ones(num3, num2); % m
 vehicle_e = power_OUT ./ power_IN; % vehicle overall power efficiency
 radius = velocity ./ yaw_rate; % vehicle turning radius as function of PCoGV & CCSA
 
 %% Cleaning up & Saving
-clearvars -except steering_sweep velocity_sweep yaw_rate_sweep yaw_rate TOY_correction_table steering_Up_Grid steering_Dn_Grid yaw_rate_gradient
+clearvars -except steering_sweep velocity_sweep yaw_rate_sweep yaw_rate TOY_correction_table steering_Up_Grid steering_Dn_Grid yaw_rate_gradient limit_velocity_coeffs
 
-save("..\PROCESSED_DATA\Yaw_Tables.mat")
+save("PROCESSED_DATA\Yaw_Tables.mat")
 
 %% Data Viewing
 % scatter3(velocity(:), steering(:), yaw_rate(:))
