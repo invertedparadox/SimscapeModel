@@ -32,15 +32,6 @@ function readData(src, ~)
     
     if src.UserData.Count > (8*(Startup_Size + Sample_Size+10))
         configureCallback(src, "off");
-
-%         filename = 'motor_data.mat';
-%         load(filename);
-%         motor_I = [motor_I; src.UserData.Data(:,1)./100];
-%         motor_V = [motor_V; src.UserData.Data(:,2)./100];
-%         motor_W = [motor_W; src.UserData.Data(:,3).*0.104719755./10];
-%         motor_K = [motor_K; src.UserData.Data(:,5)./100];
-%         clearvars -except motor_I motor_V motor_W motor_K filename
-%         save(filename)
     end
 
     % Update the Count value of the serialport object.

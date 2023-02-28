@@ -56,7 +56,6 @@ ref_yaw_state = 0; % bool
 ang_acc_drop_limit = 10; % rad/s^2
 ang_acc_hystersesis = 0.1; % rad/s^2
 TOY_correction_factor = 0.1; % increase/decrease in yaw rate to bring reference yaw rate closer to TOY (time optimal yaw rate)
-yaw_bias = 0.01;
 alpha_error = 0.1;
 
 torque_sat_const = 0.5;
@@ -65,6 +64,10 @@ battery_current_hysteresis = 2; % A
 battery_power_hysteresis = 500; % W
 power_state = 0; % bool
 max_K = 4095; % none
+
+deadband_angle = 12;
+P = 1;
+I = 0;
 
 %% Signal Max/Min Clamping
 % navigation sensors
@@ -218,11 +221,6 @@ C1 = -0.000000002541; % lateral tire coefficient of friction x^3 coefficient (1/
 C2 = 0.000005279; % lateral tire coefficient of friction x^2 coefficient (1/N^2)
 C3 = -0.003943; % lateral tire coefficient of friction x coefficient (1/N)
 C4 = 3.6340; % lateral tire coefficient of friction constant coefficient (none)
-
-%% TVS Tunable Parameters
-deadband_angle = 12;
-P = 1;
-I = 0;
 
 %% Simulation Initial Conditions
 % navigation sensors
