@@ -14,8 +14,8 @@ load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Sensor_Tables.mat");
 
 %% Simulation Top Parameters
-YAW_ENABLE = 1;  % Disable yaw rate sweeping when set to 0
-TVS_ENABLE = 1;  % Enable TVS when set to 1
+YAW_ENABLE = 0;  % Disable yaw rate sweeping when set to 0
+TVS_ENABLE = 0;  % Enable TVS when set to 1
 TRACTION_ENABLE = 0; % Enable variable objective function coefficients
 MOTOR_ENABLE = [0 0 1 1]; % Enable motors (bool)
 
@@ -179,7 +179,7 @@ rad_liq_vol = 0.000157; % m^3
 
 % Suspension
 Kz = 250*lbin2kgm; % N/m spring constant per wheel
-F0z = [1 1].*m_all*g/4; % N preload per wheel
+F0z = [0 0]; % N preload per wheel
 Hmax = 0.05715 + 0.0225; % m
 AntiSwayR = 0.0635; % m
 AntiSwayNtrlAng = pi/4; % rad
