@@ -5,7 +5,7 @@ clc;
 %% Parameters
 sweep_name = sweep_names(1); % sweep name
 
-MAX_V = 18; % maximum velocity used in simulation (m/s)
+MAX_V = 23; % maximum velocity used in simulation (m/s)
 MIN_V = 5; % minimum velocity used in simulation (m/s)
 dv = 1; % velocity increment used in simulation (m/s)
 d0 = 5; % center column steering angle (CCSA) increment used in simulation (deg)
@@ -36,6 +36,7 @@ for i = 1:num1
 end
 
 ALL_SWEEP_DATA.(sweep_name) = [velocity' steering_angle'];
+sim_time = (dt_ON*num1*num2) + (dt_OFF*num1);
 
 %% Cleanup & Saving
 clearvars -except ALL_SWEEP_DATA MAX_V MIN_V dv d0 dt_ON dt_OFF
