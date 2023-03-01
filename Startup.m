@@ -14,13 +14,13 @@ load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Sensor_Tables.mat");
 
 %% Simulation Top Parameters
-YAW_ENABLE = 0;  % Disable yaw rate sweeping when set to 0
-TVS_ENABLE = 0;  % Enable TVS when set to 1
+YAW_ENABLE = 1;  % Disable yaw rate sweeping when set to 0
+TVS_ENABLE = 1;  % Enable TVS when set to 1
 TRACTION_ENABLE = 0; % Enable variable objective function coefficients
 MOTOR_ENABLE = [0 0 1 1]; % Enable motors (bool)
 
-selected_track = ALL_TRACK_DATA.(event_names(7));
-selected_maxvm = MIN_TRACK_DATA.(event_names(7));
+selected_track = ALL_TRACK_DATA.(event_names(11));
+selected_maxvm = MIN_TRACK_DATA.(event_names(11));
 selected_sweep = ALL_SWEEP_DATA.(sweep_names(1));
 
 %% Simulation Sample Rates

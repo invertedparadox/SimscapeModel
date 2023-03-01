@@ -7,15 +7,18 @@ clc;
 Xi = 0;
 Yi = 0;
 
+% import data
+load("PROCESSED_DATA\Track_Tables.mat");
+
 % all generated tracks
-event_names = ["acceleration", "skidpad", "austria_endurance", "l_square", "r_square", "short_oc", "grand_prix", "track_Left", "track_Right", "long_straight"];
+event_names = ["acceleration", "skidpad", "austria_endurance", "l_square", "r_square", "short_oc", "grand_prix", "track_Left", "track_Right", "long_straight", "grand_prix_5"];
 sweep_names = ["ccw_steering"];
 
 % path to all track files
 PATH = "RAW_DATA/";
 
 % selected track to update or add
-track_name = event_names(1); % notepad file name
+track_name = event_names(11); % notepad file name
 
 %% Set up the Import Options and import the data
 opts = delimitedTextImportOptions("NumVariables", 3);
@@ -30,7 +33,6 @@ opts = setvaropts(opts, "s", "EmptyFieldRule", "auto");
 % Import the data
 All_data = readtable(PATH + track_name + ".txt", opts);
 track_xy = table2array(All_data(:,2:end));
-load("PROCESSED_DATA\Track_Tables.mat");
 
 %% Initialize Variables
 if All_data{1, 1} == "Left"
