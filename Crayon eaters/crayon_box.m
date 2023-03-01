@@ -20,6 +20,7 @@ motorControllerCurve = [25, 260;
 
 %Parabolic function
 maxMotorTemp = 95;
+minMotorTemp = 75;
 motorTempX = minMotorTemp : (maxMotorTemp-minMotorTemp) / STEPS : maxMotorTemp;
 motorTempCurve = 140 -  (motorTempX - minMotorTemp) .^ 2 .* (140) / (maxMotorTemp - minMotorTemp)^2;
 

@@ -1,6 +1,6 @@
 %% Startup
-clear
-clc
+% clear
+% clc
 
 %% Load Table Data
 %sscfluids_ev_battery_cooling
@@ -60,7 +60,6 @@ alpha_error = 0.1;
 
 torque_sat_const = 0.5;
 default_power_dist = [0.25, 0.25, 0.25, 0.25]; % percent
-battery_current_hysteresis = 2; % A
 battery_power_hysteresis = 500; % W
 power_state = 0; % bool
 max_K = 4095; % none
@@ -276,7 +275,7 @@ dIndex = 50;                % number of future track points
 forward_look_straight = 5;  % number of future track points considered if current or future is a straightaway
 forward_look_turn = 15;     % number of future track points considered if current and future is a turn
 q_thresh = 0.05;            % threshhold between quadrants in cartesian plane
-axb = -4;                   % m/s^2 Braking decceleration
+axb = -5;                   % m/s^2 Braking decceleration
 
 % indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
 indicies = [3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4];
