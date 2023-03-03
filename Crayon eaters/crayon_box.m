@@ -24,17 +24,4 @@ minMotorTemp = 75;
 motorTempX = minMotorTemp : (maxMotorTemp-minMotorTemp) / STEPS : maxMotorTemp;
 motorTempCurve = 140 -  (motorTempX - minMotorTemp) .^ 2 .* (140) / (maxMotorTemp - minMotorTemp)^2;
 
-
-%{
-maxControlTemp = 100;
-controlTempX = 0 : maxControlTemp / STEP_SIZE : maxControlTemp;
-controlCoef = 1;
-controlTempCurve = (1 - controlCoef * ...
-    (controlTempX / maxControlTemp) .^ 2);
-%}
-% 
-% maxBatteryTemp = 60;
-% batteryCoef = 1;
-% batteryTempX = 0 : maxBatteryTemp / STEPS : maxBatteryTemp;
-% batteryTempCurve = (1 - batteryCoef * ...
-%     (batteryTempX / maxBatteryTemp) .^ 2);
+CURRENT_BUFFER = 5; % Buffer value enforced between maxAmps and  before torque capped
