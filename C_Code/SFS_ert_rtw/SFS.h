@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'SFS'.
  *
- * Model version                  : 2.107
+ * Model version                  : 2.217
  * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
- * C/C++ source code generated on : Sat Feb 18 10:30:45 2023
+ * C/C++ source code generated on : Fri Mar  3 09:05:07 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -91,15 +91,17 @@ typedef struct {
   insfilterAsync filter;
   real_T UnitDelay3_DSTATE[784];       /* '<S2>/Unit Delay3' */
   real_T UnitDelay2_DSTATE[28];        /* '<S2>/Unit Delay2' */
+  real_T val[784];
   real_T Pdot[784];
   real_T procNoise[784];
   real_T dfdx[784];
-  real_T dv[784];
+  real_T obj[784];
   real_T P_m[784];
   real_T X_c[784];
-  real_T obj[784];
+  real_T obj_k[784];
   real_T W[784];
-  real_T P_k[784];
+  real_T P_c[784];
+  real_T UnitDelay1_DSTATE;            /* '<S2>/Unit Delay1' */
 } DW_SFS;
 
 /* Block signals and states (default storage) for system '<Root>' */
@@ -109,26 +111,91 @@ typedef struct {
 
 /* Constant parameters (default storage) */
 typedef struct {
-  /* Expression: IMUNED2VNED
-   * Referenced by: '<S2>/SNED to VNED'
-   */
-  real_T SNEDtoVNED_IMUNED2VNED[9];
-
-  /* Expression: MAGNED2VNED
-   * Referenced by: '<S2>/SNED to VNED'
-   */
-  real_T SNEDtoVNED_MAGNED2VNED[9];
-
-  /* Expression: eye(28)./1000
+  /* Expression: covarience_matrix_IC
    * Referenced by: '<S2>/Unit Delay3'
    */
   real_T UnitDelay3_InitialCondition[784];
 
-  /* Expression: initstate
+  /* Expression: state_IC
    * Referenced by: '<S2>/Unit Delay2'
    */
   real_T UnitDelay2_InitialCondition[28];
 } ConstP;
+
+/* External inputs (root inport signals with default storage) */
+typedef struct {
+  real_T vel[3];                       /* '<Root>/vel' */
+  real_T pos[3];                       /* '<Root>/pos' */
+  real_T acc[3];                       /* '<Root>/acc' */
+  real_T mag[3];                       /* '<Root>/mag' */
+  real_T gyro[3];                      /* '<Root>/gyro' */
+  real_T GS;                           /* '<Root>/GS' */
+  real_T Course;                       /* '<Root>/Course' */
+  real_T battery_V;                    /* '<Root>/battery_V' */
+  real_T battery_I;                    /* '<Root>/battery_I' */
+  real_T motor_V[4];                   /* '<Root>/motor_V' */
+  real_T motor_I[4];                   /* '<Root>/motor_I' */
+  real_T pwr_lmt[2];                   /* '<Root>/pwr_lmt' */
+  real_T motor_T[4];                   /* '<Root>/motor_T' */
+  real_T mc_T[4];                      /* '<Root>/mc_T' */
+  real_T motor_FT[2];                  /* '<Root>/motor_FT' */
+  real_T batt_T;                       /* '<Root>/batt_T' */
+  real_T batt_FT;                      /* '<Root>/batt_FT' */
+  real_T omega[4];                     /* '<Root>/omega' */
+  real_T theta;                        /* '<Root>/theta' */
+  real_T shock_L[4];                   /* '<Root>/shock_L' */
+  real_T FZ[4];                        /* '<Root>/FZ' */
+} ExtU;
+
+/* External outputs (root outports fed by signals with default storage) */
+typedef struct {
+  real_T angvel_VNED[3];               /* '<Root>/angvel_VNED' */
+  real_T ang_NED[4];                   /* '<Root>/ang_NED' */
+  real_T pos_VNED[3];                  /* '<Root>/pos_VNED' */
+  real_T vel_VNED[3];                  /* '<Root>/vel_VNED' */
+  real_T acc_VNED[3];                  /* '<Root>/acc_VNED' */
+  real_T mag_VNED[3];                  /* '<Root>/mag_VNED' */
+  real_T acc_bias_VNED[3];             /* '<Root>/acc_bias_VNED' */
+  real_T gyro_bias_VNED[3];            /* '<Root>/gyro_bias_VNED' */
+  real_T mag_bias_VNED[3];             /* '<Root>/mag_bias_VNED' */
+} ExtY;
+
+/* Parameters (default storage) */
+struct P_ {
+  real_T covA;                         /* Variable: covA
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T covG;                         /* Variable: covG
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T covM;                         /* Variable: covM
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T covP;                         /* Variable: covP
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T covV;                         /* Variable: covV
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T fusion_t;                     /* Variable: fusion_t
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T gps_ratio;                    /* Variable: gps_ratio
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T location_lla_IC[3];           /* Variable: location_lla_IC
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T noise_state[28];              /* Variable: noise_state
+                                        * Referenced by: '<S2>/fusion'
+                                        */
+  real_T phi;                          /* Variable: phi
+                                        * Referenced by: '<S2>/SNED to VNED'
+                                        */
+};
+
+/* Parameters (default storage) */
+typedef struct P_ P;
 
 /* Real-time Model Data Structure */
 struct tag_RTM {
@@ -147,18 +214,15 @@ struct tag_RTM {
   } Timing;
 };
 
+/* Block parameters (default storage) */
+extern P rtP;
+
 /* Constant parameters (default storage) */
 extern const ConstP rtConstP;
 
 /* Model entry point functions */
 extern void SFS_initialize(RT_MODEL *const rtM);
-extern void SFS_step(RT_MODEL *const rtM, real_T rtU_vel[3], real_T rtU_pos[3],
-                     real_T rtU_acc[3], real_T rtU_mag[3], real_T rtU_gyro[3],
-                     real_T rtY_angvel_VNED[3], real_T rtY_ang_NED[4], real_T
-                     rtY_pos_VNED[3], real_T rtY_vel_VNED[3], real_T
-                     rtY_acc_VNED[3], real_T rtY_mag_VNED[3], real_T
-                     rtY_acc_bias_VNED[3], real_T rtY_gyro_bias_VNED[3], real_T
-                     rtY_mag_bias_VNED[3]);
+extern void SFS_step(RT_MODEL *const rtM, ExtU *rtU, ExtY *rtY);
 
 /*-
  * The generated code includes comments that allow you to trace directly

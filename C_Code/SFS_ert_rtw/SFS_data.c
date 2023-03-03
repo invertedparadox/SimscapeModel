@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'SFS'.
  *
- * Model version                  : 2.107
+ * Model version                  : 2.217
  * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
- * C/C++ source code generated on : Sat Feb 18 10:30:45 2023
+ * C/C++ source code generated on : Fri Mar  3 09:05:07 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -21,22 +21,64 @@
 
 #include "SFS.h"
 
+/* Block parameters (default storage) */
+P rtP = {
+  /* Variable: covA
+   * Referenced by: '<S2>/fusion'
+   */
+  4.0095,
+
+  /* Variable: covG
+   * Referenced by: '<S2>/fusion'
+   */
+  0.018,
+
+  /* Variable: covM
+   * Referenced by: '<S2>/fusion'
+   */
+  0.99,
+
+  /* Variable: covP
+   * Referenced by: '<S2>/fusion'
+   */
+  1.0,
+
+  /* Variable: covV
+   * Referenced by: '<S2>/fusion'
+   */
+  0.1747,
+
+  /* Variable: fusion_t
+   * Referenced by: '<S2>/fusion'
+   */
+  0.01,
+
+  /* Variable: gps_ratio
+   * Referenced by: '<S2>/fusion'
+   */
+  1.0,
+
+  /* Variable: location_lla_IC
+   * Referenced by: '<S2>/fusion'
+   */
+  { 40.437675, -86.94375, 680.0 },
+
+  /* Variable: noise_state
+   * Referenced by: '<S2>/fusion'
+   */
+  { 1.0E-6, 1.0E-6, 1.0E-6, 1.0E-6, 0.005, 0.005, 0.005, 1.0E-6, 1.0E-6, 1.0E-6,
+    1.0E-6, 1.0E-6, 1.0E-6, 50.0, 50.0, 50.0, 1.0E-10, 1.0E-10, 1.0E-10, 0.0001,
+    0.0001, 0.0001, 1.0E-6, 1.0E-6, 1.0E-6, 0.1, 0.1, 0.1 },
+
+  /* Variable: phi
+   * Referenced by: '<S2>/SNED to VNED'
+   */
+  45.0
+};
+
 /* Constant parameters (default storage) */
 const ConstP rtConstP = {
-  /* Expression: IMUNED2VNED
-   * Referenced by: '<S2>/SNED to VNED'
-   */
-  { -0.70710678118654746, -0.0, -0.70710678118654768, 0.0, 1.0, -0.0,
-    0.70710678118654768, 0.0, -0.70710678118654746 },
-
-  /* Expression: MAGNED2VNED
-   * Referenced by: '<S2>/SNED to VNED'
-   */
-  { -0.70710678118654746, 0.0, 0.70710678118654768, 8.6595605623549341E-17, -1.0,
-    8.65956056235493E-17, 0.70710678118654768, 1.2246467991473532E-16,
-    0.70710678118654746 },
-
-  /* Expression: eye(28)./1000
+  /* Expression: covarience_matrix_IC
    * Referenced by: '<S2>/Unit Delay3'
    */
   { 0.001, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -93,7 +135,7 @@ const ConstP rtConstP = {
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.001 },
 
-  /* Expression: initstate
+  /* Expression: state_IC
    * Referenced by: '<S2>/Unit Delay2'
    */
   { 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

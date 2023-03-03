@@ -27,6 +27,7 @@ selected_sweep = ALL_SWEEP_DATA.(sweep_names(1));
 t = 0.015; % torque vectoring step size (s)
 driver_t = 0.015; % driver reaction time (s)
 fusion_t = 0.01; % sensor fusion sample period (s)
+fusion_t_sim = fusion_t; % duplicate for code generation
 gps_hz = 0.01; % gps sample period (s)
 imu_hz = fusion_t; % imu sample period (s)
 gps_ratio = gps_hz / imu_hz; % ratio of gps sample period to imu sample period
@@ -129,8 +130,8 @@ min_velocity_regen = 1.4; % m/s
 %% Vehicle Constants
 % Vehicle Body
 m_unsprung = [6 6 6 6] + ([8 8 8 8] .* MOTOR_ENABLE); % kg
-m_body = 300; % kg
-m_all = m_body + m_unsprung;
+m_body = 200; % kg
+m_all = m_body + sum(m_unsprung);
 
 %	Izz = 41782359388.78          Izx = 1218939069.69       Izy = -41283226162.43	
 %	Ixz = 1218939069.69            Ixx = 207923119475.86   Ixy = -323722590.99 
@@ -183,7 +184,7 @@ F0z = [0 0]; % N preload per wheel
 Hmax = 0.05715 + 0.0225; % m
 AntiSwayR = 0.0635; % m
 AntiSwayNtrlAng = pi/4; % rad
-AntiSwayTrsK = 1218; % Nm/rad
+AntiSwayTrsK = 1218/2; % Nm/rad
 ActSuspDutyCycle = 1; % none
 
 steer_slope = 0.282; % CCSA to rack displacement slope (mm/deg)
@@ -247,7 +248,7 @@ battery_FT_IC = 300; % K
 omega_IC = 0; % rad/s
 theta_IC = 0; % deg
 shock_length_IC = 0.1; % m
-Fz_IC = m_body*g/4; % N
+Fz_IC = m_all*g/4; % N
 
 % vehicle initial conditions
 BattCap_I = 16;
@@ -275,8 +276,7 @@ dIndex = 50;                % number of future track points
 forward_look_straight = 5;  % number of future track points considered if current or future is a straightaway
 forward_look_turn = 15;     % number of future track points considered if current and future is a turn
 q_thresh = 0.05;            % threshhold between quadrants in cartesian plane
-axb = -6.25;                   % m/s^2 Braking decceleration
-alpha_brake = 0.025;
+axb = -6.25;                % m/s^2 Braking decceleration
 
 % indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
 indicies = [3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4];

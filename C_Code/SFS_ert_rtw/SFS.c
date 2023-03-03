@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'SFS'.
  *
- * Model version                  : 2.107
+ * Model version                  : 2.217
  * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
- * C/C++ source code generated on : Sat Feb 18 10:30:45 2023
+ * C/C++ source code generated on : Fri Mar  3 09:05:07 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -39,7 +39,11 @@ static void SFS_d(const real_T rtu_sensor_raw[3], const real_T rtu_sensor_raw_p
                   rty_sensor_fused_f[3], DW_SFS *localDW);
 
 /* Forward declaration for local functions */
+static void quaternionBase_rotmat(real_T q_a, real_T q_b, real_T q_c, real_T q_d,
+  real_T r[9]);
 static void BasicEKF_repairQuaternion(const insfilterAsync *obj, real_T x[28]);
+static void AsyncMARGGPSFuserBase_predict(insfilterAsync *obj, real_T dt, DW_SFS
+  *localDW);
 static void BasicEKF_correctEqn(const insfilterAsync *obj, real_T x[28], real_T
   P_0[784], const real_T h[3], const real_T H[84], const real_T z[3], const
   real_T R[9], real_T innov[3], real_T innovCov[9], DW_SFS *localDW);
@@ -275,14 +279,48 @@ static void rate_scheduler(RT_MODEL *const rtM)
    * counter is reset when it reaches its limit (zero means run).
    */
   (rtM->Timing.TaskCounters.TID[1])++;
-  if ((rtM->Timing.TaskCounters.TID[1]) > 2) {/* Sample time: [0.015s, 0.0s] */
+  if ((rtM->Timing.TaskCounters.TID[1]) > 1) {/* Sample time: [0.01s, 0.0s] */
     rtM->Timing.TaskCounters.TID[1] = 0;
   }
 
   (rtM->Timing.TaskCounters.TID[2])++;
-  if ((rtM->Timing.TaskCounters.TID[2]) > 7) {/* Sample time: [0.04s, 0.0s] */
+  if ((rtM->Timing.TaskCounters.TID[2]) > 2) {/* Sample time: [0.015s, 0.0s] */
     rtM->Timing.TaskCounters.TID[2] = 0;
   }
+}
+
+/* Function for MATLAB Function: '<S2>/SNED to VNED' */
+static void quaternionBase_rotmat(real_T q_a, real_T q_b, real_T q_c, real_T q_d,
+  real_T r[9])
+{
+  real_T aasq;
+  real_T ac2;
+  real_T ad2;
+  real_T bc2;
+  real_T bd2;
+  real_T cd2;
+  real_T n;
+  n = sqrt(((q_a * q_a + q_b * q_b) + q_c * q_c) + q_d * q_d);
+  q_a /= n;
+  q_b /= n;
+  q_c /= n;
+  q_d /= n;
+  n = q_a * q_b * 2.0;
+  ac2 = q_a * q_c * 2.0;
+  ad2 = q_a * q_d * 2.0;
+  bc2 = q_b * q_c * 2.0;
+  bd2 = q_b * q_d * 2.0;
+  cd2 = q_c * q_d * 2.0;
+  aasq = q_a * q_a * 2.0 - 1.0;
+  r[0] = q_b * q_b * 2.0 + aasq;
+  r[3] = bc2 + ad2;
+  r[6] = bd2 - ac2;
+  r[1] = bc2 - ad2;
+  r[4] = q_c * q_c * 2.0 + aasq;
+  r[7] = cd2 + n;
+  r[2] = bd2 + ac2;
+  r[5] = cd2 - n;
+  r[8] = q_d * q_d * 2.0 + aasq;
 }
 
 /* Function for MATLAB Function: '<S2>/fusion' */
@@ -310,6 +348,283 @@ static void BasicEKF_repairQuaternion(const insfilterAsync *obj, real_T x[28])
     x[(int32_T)obj->OrientationIdx[1] - 1] = n_tmp / n;
     x[(int32_T)obj->OrientationIdx[2] - 1] = n_tmp_0 / n;
     x[(int32_T)obj->OrientationIdx[3] - 1] = n_tmp_1 / n;
+  }
+}
+
+/* Function for MATLAB Function: '<S2>/fusion' */
+static void AsyncMARGGPSFuserBase_predict(insfilterAsync *obj, real_T dt, DW_SFS
+  *localDW)
+{
+  real_T v[28];
+  real_T dfdx_tmp;
+  real_T dfdx_tmp_0;
+  real_T dfdx_tmp_1;
+  real_T dfdx_tmp_2;
+  real_T dfdx_tmp_3;
+  real_T dfdx_tmp_4;
+  int32_T i;
+  int32_T i_0;
+  int32_T j;
+  static const int8_T c[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  static const int8_T d[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  static const int8_T e[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  static const int8_T f[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  static const int8_T g[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  static const int8_T h[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+  v[0] = obj->QuaternionNoise[0];
+  v[1] = obj->QuaternionNoise[1];
+  v[2] = obj->QuaternionNoise[2];
+  v[3] = obj->QuaternionNoise[3];
+  v[4] = obj->AngularVelocityNoise[0];
+  v[7] = obj->PositionNoise[0];
+  v[10] = obj->VelocityNoise[0];
+  v[13] = obj->AccelerationNoise[0];
+  v[16] = obj->AccelerometerBiasNoise[0];
+  v[19] = obj->GyroscopeBiasNoise[0];
+  v[22] = obj->GeomagneticVectorNoise[0];
+  v[25] = obj->MagnetometerBiasNoise[0];
+  v[5] = obj->AngularVelocityNoise[1];
+  v[8] = obj->PositionNoise[1];
+  v[11] = obj->VelocityNoise[1];
+  v[14] = obj->AccelerationNoise[1];
+  v[17] = obj->AccelerometerBiasNoise[1];
+  v[20] = obj->GyroscopeBiasNoise[1];
+  v[23] = obj->GeomagneticVectorNoise[1];
+  v[26] = obj->MagnetometerBiasNoise[1];
+  v[6] = obj->AngularVelocityNoise[2];
+  v[9] = obj->PositionNoise[2];
+  v[12] = obj->VelocityNoise[2];
+  v[15] = obj->AccelerationNoise[2];
+  v[18] = obj->AccelerometerBiasNoise[2];
+  v[21] = obj->GyroscopeBiasNoise[2];
+  v[24] = obj->GeomagneticVectorNoise[2];
+  v[27] = obj->MagnetometerBiasNoise[2];
+  memset(&localDW->procNoise[0], 0, 784U * sizeof(real_T));
+  localDW->Pdot[0] = 0.0;
+  dfdx_tmp_3 = -obj->pState[4] / 2.0;
+  localDW->Pdot[28] = dfdx_tmp_3;
+  dfdx_tmp = -obj->pState[5] / 2.0;
+  localDW->Pdot[56] = dfdx_tmp;
+  dfdx_tmp_1 = -obj->pState[6] / 2.0;
+  localDW->Pdot[84] = dfdx_tmp_1;
+  dfdx_tmp_2 = -obj->pState[1] / 2.0;
+  localDW->Pdot[112] = dfdx_tmp_2;
+  dfdx_tmp_4 = -obj->pState[2] / 2.0;
+  localDW->Pdot[140] = dfdx_tmp_4;
+  dfdx_tmp_0 = -obj->pState[3] / 2.0;
+  localDW->Pdot[168] = dfdx_tmp_0;
+  localDW->Pdot[196] = 0.0;
+  localDW->Pdot[224] = 0.0;
+  localDW->Pdot[252] = 0.0;
+  localDW->Pdot[280] = 0.0;
+  localDW->Pdot[308] = 0.0;
+  localDW->Pdot[336] = 0.0;
+  localDW->Pdot[364] = 0.0;
+  localDW->Pdot[392] = 0.0;
+  localDW->Pdot[420] = 0.0;
+  localDW->Pdot[448] = 0.0;
+  localDW->Pdot[476] = 0.0;
+  localDW->Pdot[504] = 0.0;
+  localDW->Pdot[532] = 0.0;
+  localDW->Pdot[560] = 0.0;
+  localDW->Pdot[588] = 0.0;
+  localDW->Pdot[616] = 0.0;
+  localDW->Pdot[644] = 0.0;
+  localDW->Pdot[672] = 0.0;
+  localDW->Pdot[700] = 0.0;
+  localDW->Pdot[728] = 0.0;
+  localDW->Pdot[756] = 0.0;
+  localDW->Pdot[1] = obj->pState[4] / 2.0;
+  localDW->Pdot[29] = 0.0;
+  localDW->Pdot[57] = obj->pState[6] / 2.0;
+  localDW->Pdot[85] = dfdx_tmp;
+  localDW->Pdot[113] = obj->pState[0] / 2.0;
+  localDW->Pdot[141] = dfdx_tmp_0;
+  localDW->Pdot[169] = obj->pState[2] / 2.0;
+  localDW->Pdot[197] = 0.0;
+  localDW->Pdot[225] = 0.0;
+  localDW->Pdot[253] = 0.0;
+  localDW->Pdot[281] = 0.0;
+  localDW->Pdot[309] = 0.0;
+  localDW->Pdot[337] = 0.0;
+  localDW->Pdot[365] = 0.0;
+  localDW->Pdot[393] = 0.0;
+  localDW->Pdot[421] = 0.0;
+  localDW->Pdot[449] = 0.0;
+  localDW->Pdot[477] = 0.0;
+  localDW->Pdot[505] = 0.0;
+  localDW->Pdot[533] = 0.0;
+  localDW->Pdot[561] = 0.0;
+  localDW->Pdot[589] = 0.0;
+  localDW->Pdot[617] = 0.0;
+  localDW->Pdot[645] = 0.0;
+  localDW->Pdot[673] = 0.0;
+  localDW->Pdot[701] = 0.0;
+  localDW->Pdot[729] = 0.0;
+  localDW->Pdot[757] = 0.0;
+  localDW->Pdot[2] = obj->pState[5] / 2.0;
+  localDW->Pdot[30] = dfdx_tmp_1;
+  localDW->Pdot[58] = 0.0;
+  localDW->Pdot[86] = obj->pState[4] / 2.0;
+  localDW->Pdot[114] = obj->pState[3] / 2.0;
+  localDW->Pdot[142] = obj->pState[0] / 2.0;
+  localDW->Pdot[170] = dfdx_tmp_2;
+  localDW->Pdot[198] = 0.0;
+  localDW->Pdot[226] = 0.0;
+  localDW->Pdot[254] = 0.0;
+  localDW->Pdot[282] = 0.0;
+  localDW->Pdot[310] = 0.0;
+  localDW->Pdot[338] = 0.0;
+  localDW->Pdot[366] = 0.0;
+  localDW->Pdot[394] = 0.0;
+  localDW->Pdot[422] = 0.0;
+  localDW->Pdot[450] = 0.0;
+  localDW->Pdot[478] = 0.0;
+  localDW->Pdot[506] = 0.0;
+  localDW->Pdot[534] = 0.0;
+  localDW->Pdot[562] = 0.0;
+  localDW->Pdot[590] = 0.0;
+  localDW->Pdot[618] = 0.0;
+  localDW->Pdot[646] = 0.0;
+  localDW->Pdot[674] = 0.0;
+  localDW->Pdot[702] = 0.0;
+  localDW->Pdot[730] = 0.0;
+  localDW->Pdot[758] = 0.0;
+  localDW->Pdot[3] = obj->pState[6] / 2.0;
+  localDW->Pdot[31] = obj->pState[5] / 2.0;
+  localDW->Pdot[59] = dfdx_tmp_3;
+  localDW->Pdot[87] = 0.0;
+  localDW->Pdot[115] = dfdx_tmp_4;
+  localDW->Pdot[143] = obj->pState[1] / 2.0;
+  localDW->Pdot[171] = obj->pState[0] / 2.0;
+  localDW->Pdot[199] = 0.0;
+  localDW->Pdot[227] = 0.0;
+  localDW->Pdot[255] = 0.0;
+  localDW->Pdot[283] = 0.0;
+  localDW->Pdot[311] = 0.0;
+  localDW->Pdot[339] = 0.0;
+  localDW->Pdot[367] = 0.0;
+  localDW->Pdot[395] = 0.0;
+  localDW->Pdot[423] = 0.0;
+  localDW->Pdot[451] = 0.0;
+  localDW->Pdot[479] = 0.0;
+  localDW->Pdot[507] = 0.0;
+  localDW->Pdot[535] = 0.0;
+  localDW->Pdot[563] = 0.0;
+  localDW->Pdot[591] = 0.0;
+  localDW->Pdot[619] = 0.0;
+  localDW->Pdot[647] = 0.0;
+  localDW->Pdot[675] = 0.0;
+  localDW->Pdot[703] = 0.0;
+  localDW->Pdot[731] = 0.0;
+  localDW->Pdot[759] = 0.0;
+  for (j = 0; j < 28; j++) {
+    localDW->procNoise[j + 28 * j] = v[j];
+    localDW->Pdot[28 * j + 4] = 0.0;
+    localDW->Pdot[28 * j + 5] = 0.0;
+    localDW->Pdot[28 * j + 6] = 0.0;
+    localDW->Pdot[28 * j + 7] = c[j];
+    localDW->Pdot[28 * j + 8] = d[j];
+    localDW->Pdot[28 * j + 9] = e[j];
+    localDW->Pdot[28 * j + 10] = f[j];
+    localDW->Pdot[28 * j + 11] = g[j];
+    localDW->Pdot[28 * j + 12] = h[j];
+    localDW->Pdot[28 * j + 13] = 0.0;
+    localDW->Pdot[28 * j + 14] = 0.0;
+    localDW->Pdot[28 * j + 15] = 0.0;
+    localDW->Pdot[28 * j + 16] = 0.0;
+    localDW->Pdot[28 * j + 17] = 0.0;
+    localDW->Pdot[28 * j + 18] = 0.0;
+    localDW->Pdot[28 * j + 19] = 0.0;
+    localDW->Pdot[28 * j + 20] = 0.0;
+    localDW->Pdot[28 * j + 21] = 0.0;
+    localDW->Pdot[28 * j + 22] = 0.0;
+    localDW->Pdot[28 * j + 23] = 0.0;
+    localDW->Pdot[28 * j + 24] = 0.0;
+    localDW->Pdot[28 * j + 25] = 0.0;
+    localDW->Pdot[28 * j + 26] = 0.0;
+    localDW->Pdot[28 * j + 27] = 0.0;
+  }
+
+  for (j = 0; j < 28; j++) {
+    for (i = 0; i < 28; i++) {
+      int32_T dfdx_tmp_5;
+      dfdx_tmp_5 = 28 * i + j;
+      localDW->dfdx[dfdx_tmp_5] = 0.0;
+      localDW->obj[dfdx_tmp_5] = 0.0;
+      for (i_0 = 0; i_0 < 28; i_0++) {
+        int32_T dfdx_tmp_6;
+        dfdx_tmp_6 = 28 * i_0 + j;
+        localDW->dfdx[dfdx_tmp_5] += obj->pStateCovariance[28 * i + i_0] *
+          localDW->Pdot[dfdx_tmp_6];
+        localDW->obj[dfdx_tmp_5] += localDW->Pdot[28 * i_0 + i] *
+          obj->pStateCovariance[dfdx_tmp_6];
+      }
+    }
+  }
+
+  for (j = 0; j < 784; j++) {
+    localDW->Pdot[j] = (localDW->dfdx[j] + localDW->obj[j]) + localDW->
+      procNoise[j];
+  }
+
+  v[0] = ((-(obj->pState[1] * obj->pState[4]) / 2.0 - obj->pState[2] *
+           obj->pState[5] / 2.0) - obj->pState[3] * obj->pState[6] / 2.0) * dt +
+    obj->pState[0];
+  v[1] = ((obj->pState[0] * obj->pState[4] / 2.0 - obj->pState[3] * obj->pState
+           [5] / 2.0) + obj->pState[2] * obj->pState[6] / 2.0) * dt +
+    obj->pState[1];
+  v[2] = ((obj->pState[3] * obj->pState[4] / 2.0 + obj->pState[0] * obj->pState
+           [5] / 2.0) - obj->pState[1] * obj->pState[6] / 2.0) * dt +
+    obj->pState[2];
+  v[3] = ((obj->pState[1] * obj->pState[5] / 2.0 - obj->pState[2] * obj->pState
+           [4] / 2.0) + obj->pState[0] * obj->pState[6] / 2.0) * dt +
+    obj->pState[3];
+  v[4] = dt * 0.0 + obj->pState[4];
+  v[5] = dt * 0.0 + obj->pState[5];
+  v[6] = dt * 0.0 + obj->pState[6];
+  v[7] = dt * obj->pState[10] + obj->pState[7];
+  v[8] = dt * obj->pState[11] + obj->pState[8];
+  v[9] = dt * obj->pState[12] + obj->pState[9];
+  v[10] = dt * obj->pState[13] + obj->pState[10];
+  v[11] = dt * obj->pState[14] + obj->pState[11];
+  v[12] = dt * obj->pState[15] + obj->pState[12];
+  v[13] = dt * 0.0 + obj->pState[13];
+  v[14] = dt * 0.0 + obj->pState[14];
+  v[15] = dt * 0.0 + obj->pState[15];
+  v[16] = dt * 0.0 + obj->pState[16];
+  v[17] = dt * 0.0 + obj->pState[17];
+  v[18] = dt * 0.0 + obj->pState[18];
+  v[19] = dt * 0.0 + obj->pState[19];
+  v[20] = dt * 0.0 + obj->pState[20];
+  v[21] = dt * 0.0 + obj->pState[21];
+  v[22] = dt * 0.0 + obj->pState[22];
+  v[23] = dt * 0.0 + obj->pState[23];
+  v[24] = dt * 0.0 + obj->pState[24];
+  v[25] = dt * 0.0 + obj->pState[25];
+  v[26] = dt * 0.0 + obj->pState[26];
+  v[27] = dt * 0.0 + obj->pState[27];
+  BasicEKF_repairQuaternion(obj, v);
+  for (j = 0; j < 28; j++) {
+    for (i = 0; i < 28; i++) {
+      i_0 = 28 * j + i;
+      obj->pStateCovariance[i_0] += (localDW->Pdot[28 * i + j] + localDW->
+        Pdot[i_0]) * 0.5 * dt;
+    }
+
+    obj->pState[j] = v[j];
   }
 }
 
@@ -423,11 +738,11 @@ static void BasicEKF_correctEqn(const insfilterAsync *obj, real_T x[28], real_T
       }
 
       W_tmp_1 = 28 * W_tmp_0 + rtemp;
-      localDW->P_k[W_tmp_1] = P_0[W_tmp_1] - maxval;
+      localDW->P_c[W_tmp_1] = P_0[W_tmp_1] - maxval;
     }
   }
 
-  memcpy(&P_0[0], &localDW->P_k[0], 784U * sizeof(real_T));
+  memcpy(&P_0[0], &localDW->P_c[0], 784U * sizeof(real_T));
   for (W_tmp_0 = 0; W_tmp_0 < 28; W_tmp_0++) {
     x[W_tmp_0] += (W[W_tmp_0 + 28] * innov[1] + W[W_tmp_0] * innov[0]) +
       W[W_tmp_0 + 56] * innov[2];
@@ -1031,11 +1346,11 @@ static void AsyncMARGGPSFuserBase_fusegps(insfilterAsync *obj, const real_T lla
       }
 
       i = 28 * jj + j;
-      localDW->obj[i] = obj->pStateCovariance[i] - cosphi;
+      localDW->obj_k[i] = obj->pStateCovariance[i] - cosphi;
     }
   }
 
-  memcpy(&obj->pStateCovariance[0], &localDW->obj[0], 784U * sizeof(real_T));
+  memcpy(&obj->pStateCovariance[0], &localDW->obj_k[0], 784U * sizeof(real_T));
   memcpy(&obj->pState[0], &val[0], 28U * sizeof(real_T));
 }
 
@@ -1061,15 +1376,14 @@ static void SFS_d(const real_T rtu_sensor_raw[3], const real_T rtu_sensor_raw_p
                   rty_sensor_fused_g[3], real_T rty_sensor_fused_c[3], real_T
                   rty_sensor_fused_f[3], DW_SFS *localDW)
 {
-  real_T tmp_0[84];
+  real_T tmp[84];
   real_T xk[28];
-  real_T resCov[9];
-  real_T rtb_rot_map[9];
+  real_T IMUNED2VNED[9];
+  real_T measNoise[9];
+  real_T IMUNED2VNED_0[3];
   real_T filter[3];
-  real_T position[3];
   real_T res[3];
-  real_T tmp[3];
-  real_T velocity[3];
+  real_T IMUNED2VNED_tmp;
   real_T aasq;
   real_T ab2;
   real_T ac2;
@@ -1077,333 +1391,106 @@ static void SFS_d(const real_T rtu_sensor_raw[3], const real_T rtu_sensor_raw_p
   real_T bc2;
   real_T bd2;
   real_T cd2;
-  real_T dfdx_tmp;
-  real_T dfdx_tmp_0;
   real_T n;
+  real_T q;
+  real_T xk_tmp_1;
   int32_T i;
-  int32_T i_0;
-  int32_T i_1;
-  static const real_T i_2[28] = { 1.0E-6, 1.0E-6, 1.0E-6, 1.0E-6, 0.005, 0.005,
-    0.005, 1.0E-6, 1.0E-6, 1.0E-6, 1.0E-6, 1.0E-6, 1.0E-6, 5.0, 5.0, 5.0, 0.0001,
-    0.0001, 0.0001, 1.0E-10, 1.0E-10, 1.0E-10, 1.0E-6, 1.0E-6, 1.0E-6, 0.1, 0.1,
-    0.1 };
-
-  static const int8_T c[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  static const int8_T d[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  static const int8_T e[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  static const int8_T f[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  static const int8_T g[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  static const int8_T h[28] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  static const real_T k[84] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  static const real_T c[84] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
+  /* MATLAB Function: '<S2>/SNED to VNED' */
+  n = (rtP.phi - 180.0) * 0.017453292519943295 / 2.0;
+  IMUNED2VNED_tmp = cos(n);
+  q = sin(n);
+  quaternionBase_rotmat(IMUNED2VNED_tmp - 0.0 * q * 0.0, IMUNED2VNED_tmp * 0.0 +
+                        sin(n) * 0.0, q - cos(n) * 0.0 * 0.0, cos(n) * 0.0 + 0.0
+                        * sin(n), IMUNED2VNED);
+  n = (180.0 - rtP.phi) * 0.017453292519943295 / 2.0;
+
   /* MATLAB Function: '<S2>/fusion' incorporates:
    *  UnitDelay: '<S2>/Unit Delay2'
    *  UnitDelay: '<S2>/Unit Delay3'
    */
-  velocity[0] = rtu_sensor_raw_d[0];
-  position[0] = rtu_sensor_raw_h[0];
-  velocity[1] = rtu_sensor_raw_d[1];
-  position[1] = rtu_sensor_raw_h[1];
-  localDW->filter.QuaternionNoise[0] = 1.0E-6;
-  localDW->filter.QuaternionNoise[1] = 1.0E-6;
-  localDW->filter.QuaternionNoise[2] = 1.0E-6;
-  localDW->filter.QuaternionNoise[3] = 1.0E-6;
-  localDW->filter.AngularVelocityNoise[0] = 0.005;
-  localDW->filter.PositionNoise[0] = 1.0E-6;
-  localDW->filter.VelocityNoise[0] = 1.0E-6;
-  localDW->filter.GyroscopeBiasNoise[0] = 1.0E-10;
-  localDW->filter.AccelerometerBiasNoise[0] = 0.0001;
-  localDW->filter.GeomagneticVectorNoise[0] = 1.0E-6;
-  localDW->filter.MagnetometerBiasNoise[0] = 0.1;
-  localDW->filter.AngularVelocityNoise[1] = 0.005;
-  localDW->filter.PositionNoise[1] = 1.0E-6;
-  localDW->filter.VelocityNoise[1] = 1.0E-6;
-  localDW->filter.GyroscopeBiasNoise[1] = 1.0E-10;
-  localDW->filter.AccelerometerBiasNoise[1] = 0.0001;
-  localDW->filter.GeomagneticVectorNoise[1] = 1.0E-6;
-  localDW->filter.MagnetometerBiasNoise[1] = 0.1;
-  localDW->filter.AngularVelocityNoise[2] = 0.005;
-  localDW->filter.PositionNoise[2] = 1.0E-6;
-  localDW->filter.VelocityNoise[2] = 1.0E-6;
-  localDW->filter.GyroscopeBiasNoise[2] = 1.0E-10;
-  localDW->filter.AccelerometerBiasNoise[2] = 0.0001;
-  localDW->filter.GeomagneticVectorNoise[2] = 1.0E-6;
-  localDW->filter.MagnetometerBiasNoise[2] = 0.1;
+  memcpy(&xk[0], &localDW->UnitDelay2_DSTATE[0], 28U * sizeof(real_T));
   localDW->filter.OrientationIdx[0] = 1.0;
   localDW->filter.OrientationIdx[1] = 2.0;
   localDW->filter.OrientationIdx[2] = 3.0;
   localDW->filter.OrientationIdx[3] = 4.0;
-  localDW->filter.ReferenceLocation[0] = 40.437675;
-  localDW->filter.ReferenceLocation[1] = -86.94375;
-  localDW->filter.ReferenceLocation[2] = 680.0;
-  localDW->filter.AccelerationNoise[0] = 5.0;
-  localDW->filter.AccelerationNoise[1] = 5.0;
-  localDW->filter.AccelerationNoise[2] = 5.0;
-  for (i = 0; i < 784; i++) {
-    localDW->filter.pStateCovariance[i] = localDW->UnitDelay3_DSTATE[i];
-    localDW->procNoise[i] = 0.0;
-  }
-
-  localDW->Pdot[0] = 0.0;
-  n = -localDW->UnitDelay2_DSTATE[4] / 2.0;
-  localDW->Pdot[28] = n;
-  aasq = -localDW->UnitDelay2_DSTATE[5] / 2.0;
-  localDW->Pdot[56] = aasq;
-  dfdx_tmp = -localDW->UnitDelay2_DSTATE[6] / 2.0;
-  localDW->Pdot[84] = dfdx_tmp;
-  dfdx_tmp_0 = -localDW->UnitDelay2_DSTATE[1] / 2.0;
-  localDW->Pdot[112] = dfdx_tmp_0;
-  ab2 = -localDW->UnitDelay2_DSTATE[2] / 2.0;
-  localDW->Pdot[140] = ab2;
-  ac2 = -localDW->UnitDelay2_DSTATE[3] / 2.0;
-  localDW->Pdot[168] = ac2;
-  localDW->Pdot[196] = 0.0;
-  localDW->Pdot[224] = 0.0;
-  localDW->Pdot[252] = 0.0;
-  localDW->Pdot[280] = 0.0;
-  localDW->Pdot[308] = 0.0;
-  localDW->Pdot[336] = 0.0;
-  localDW->Pdot[364] = 0.0;
-  localDW->Pdot[392] = 0.0;
-  localDW->Pdot[420] = 0.0;
-  localDW->Pdot[448] = 0.0;
-  localDW->Pdot[476] = 0.0;
-  localDW->Pdot[504] = 0.0;
-  localDW->Pdot[532] = 0.0;
-  localDW->Pdot[560] = 0.0;
-  localDW->Pdot[588] = 0.0;
-  localDW->Pdot[616] = 0.0;
-  localDW->Pdot[644] = 0.0;
-  localDW->Pdot[672] = 0.0;
-  localDW->Pdot[700] = 0.0;
-  localDW->Pdot[728] = 0.0;
-  localDW->Pdot[756] = 0.0;
-  localDW->Pdot[1] = localDW->UnitDelay2_DSTATE[4] / 2.0;
-  localDW->Pdot[29] = 0.0;
-  localDW->Pdot[57] = localDW->UnitDelay2_DSTATE[6] / 2.0;
-  localDW->Pdot[85] = aasq;
-  localDW->Pdot[113] = localDW->UnitDelay2_DSTATE[0] / 2.0;
-  localDW->Pdot[141] = ac2;
-  localDW->Pdot[169] = localDW->UnitDelay2_DSTATE[2] / 2.0;
-  localDW->Pdot[197] = 0.0;
-  localDW->Pdot[225] = 0.0;
-  localDW->Pdot[253] = 0.0;
-  localDW->Pdot[281] = 0.0;
-  localDW->Pdot[309] = 0.0;
-  localDW->Pdot[337] = 0.0;
-  localDW->Pdot[365] = 0.0;
-  localDW->Pdot[393] = 0.0;
-  localDW->Pdot[421] = 0.0;
-  localDW->Pdot[449] = 0.0;
-  localDW->Pdot[477] = 0.0;
-  localDW->Pdot[505] = 0.0;
-  localDW->Pdot[533] = 0.0;
-  localDW->Pdot[561] = 0.0;
-  localDW->Pdot[589] = 0.0;
-  localDW->Pdot[617] = 0.0;
-  localDW->Pdot[645] = 0.0;
-  localDW->Pdot[673] = 0.0;
-  localDW->Pdot[701] = 0.0;
-  localDW->Pdot[729] = 0.0;
-  localDW->Pdot[757] = 0.0;
-  localDW->Pdot[2] = localDW->UnitDelay2_DSTATE[5] / 2.0;
-  localDW->Pdot[30] = dfdx_tmp;
-  localDW->Pdot[58] = 0.0;
-  localDW->Pdot[86] = localDW->UnitDelay2_DSTATE[4] / 2.0;
-  localDW->Pdot[114] = localDW->UnitDelay2_DSTATE[3] / 2.0;
-  localDW->Pdot[142] = localDW->UnitDelay2_DSTATE[0] / 2.0;
-  localDW->Pdot[170] = dfdx_tmp_0;
-  localDW->Pdot[198] = 0.0;
-  localDW->Pdot[226] = 0.0;
-  localDW->Pdot[254] = 0.0;
-  localDW->Pdot[282] = 0.0;
-  localDW->Pdot[310] = 0.0;
-  localDW->Pdot[338] = 0.0;
-  localDW->Pdot[366] = 0.0;
-  localDW->Pdot[394] = 0.0;
-  localDW->Pdot[422] = 0.0;
-  localDW->Pdot[450] = 0.0;
-  localDW->Pdot[478] = 0.0;
-  localDW->Pdot[506] = 0.0;
-  localDW->Pdot[534] = 0.0;
-  localDW->Pdot[562] = 0.0;
-  localDW->Pdot[590] = 0.0;
-  localDW->Pdot[618] = 0.0;
-  localDW->Pdot[646] = 0.0;
-  localDW->Pdot[674] = 0.0;
-  localDW->Pdot[702] = 0.0;
-  localDW->Pdot[730] = 0.0;
-  localDW->Pdot[758] = 0.0;
-  localDW->Pdot[3] = localDW->UnitDelay2_DSTATE[6] / 2.0;
-  localDW->Pdot[31] = localDW->UnitDelay2_DSTATE[5] / 2.0;
-  localDW->Pdot[59] = n;
-  localDW->Pdot[87] = 0.0;
-  localDW->Pdot[115] = ab2;
-  localDW->Pdot[143] = localDW->UnitDelay2_DSTATE[1] / 2.0;
-  localDW->Pdot[171] = localDW->UnitDelay2_DSTATE[0] / 2.0;
-  localDW->Pdot[199] = 0.0;
-  localDW->Pdot[227] = 0.0;
-  localDW->Pdot[255] = 0.0;
-  localDW->Pdot[283] = 0.0;
-  localDW->Pdot[311] = 0.0;
-  localDW->Pdot[339] = 0.0;
-  localDW->Pdot[367] = 0.0;
-  localDW->Pdot[395] = 0.0;
-  localDW->Pdot[423] = 0.0;
-  localDW->Pdot[451] = 0.0;
-  localDW->Pdot[479] = 0.0;
-  localDW->Pdot[507] = 0.0;
-  localDW->Pdot[535] = 0.0;
-  localDW->Pdot[563] = 0.0;
-  localDW->Pdot[591] = 0.0;
-  localDW->Pdot[619] = 0.0;
-  localDW->Pdot[647] = 0.0;
-  localDW->Pdot[675] = 0.0;
-  localDW->Pdot[703] = 0.0;
-  localDW->Pdot[731] = 0.0;
-  localDW->Pdot[759] = 0.0;
-  for (i = 0; i < 28; i++) {
-    localDW->procNoise[i + 28 * i] = i_2[i];
-    localDW->Pdot[28 * i + 4] = 0.0;
-    localDW->Pdot[28 * i + 5] = 0.0;
-    localDW->Pdot[28 * i + 6] = 0.0;
-    localDW->Pdot[28 * i + 7] = c[i];
-    localDW->Pdot[28 * i + 8] = d[i];
-    localDW->Pdot[28 * i + 9] = e[i];
-    localDW->Pdot[28 * i + 10] = f[i];
-    localDW->Pdot[28 * i + 11] = g[i];
-    localDW->Pdot[28 * i + 12] = h[i];
-    localDW->Pdot[28 * i + 13] = 0.0;
-    localDW->Pdot[28 * i + 14] = 0.0;
-    localDW->Pdot[28 * i + 15] = 0.0;
-    localDW->Pdot[28 * i + 16] = 0.0;
-    localDW->Pdot[28 * i + 17] = 0.0;
-    localDW->Pdot[28 * i + 18] = 0.0;
-    localDW->Pdot[28 * i + 19] = 0.0;
-    localDW->Pdot[28 * i + 20] = 0.0;
-    localDW->Pdot[28 * i + 21] = 0.0;
-    localDW->Pdot[28 * i + 22] = 0.0;
-    localDW->Pdot[28 * i + 23] = 0.0;
-    localDW->Pdot[28 * i + 24] = 0.0;
-    localDW->Pdot[28 * i + 25] = 0.0;
-    localDW->Pdot[28 * i + 26] = 0.0;
-    localDW->Pdot[28 * i + 27] = 0.0;
-  }
-
-  for (i = 0; i < 28; i++) {
-    for (i_0 = 0; i_0 < 28; i_0++) {
-      int32_T dfdx_tmp_1;
-      dfdx_tmp_1 = 28 * i_0 + i;
-      localDW->dfdx[dfdx_tmp_1] = 0.0;
-      localDW->dv[dfdx_tmp_1] = 0.0;
-      for (i_1 = 0; i_1 < 28; i_1++) {
-        int32_T dfdx_tmp_2;
-        dfdx_tmp_2 = 28 * i_1 + i;
-        localDW->dfdx[dfdx_tmp_1] += localDW->UnitDelay3_DSTATE[28 * i_0 + i_1] *
-          localDW->Pdot[dfdx_tmp_2];
-        localDW->dv[dfdx_tmp_1] += localDW->Pdot[28 * i_1 + i_0] *
-          localDW->UnitDelay3_DSTATE[dfdx_tmp_2];
-      }
-    }
-  }
-
-  for (i = 0; i < 784; i++) {
-    localDW->Pdot[i] = (localDW->dfdx[i] + localDW->dv[i]) + localDW->
-      procNoise[i];
-  }
-
-  localDW->filter.pState[0] = ((-(localDW->UnitDelay2_DSTATE[1] *
-    localDW->UnitDelay2_DSTATE[4]) / 2.0 - localDW->UnitDelay2_DSTATE[2] *
-    localDW->UnitDelay2_DSTATE[5] / 2.0) - localDW->UnitDelay2_DSTATE[3] *
-    localDW->UnitDelay2_DSTATE[6] / 2.0) * 0.005 + localDW->UnitDelay2_DSTATE[0];
-  localDW->filter.pState[1] = ((localDW->UnitDelay2_DSTATE[0] *
-    localDW->UnitDelay2_DSTATE[4] / 2.0 - localDW->UnitDelay2_DSTATE[3] *
-    localDW->UnitDelay2_DSTATE[5] / 2.0) + localDW->UnitDelay2_DSTATE[2] *
-    localDW->UnitDelay2_DSTATE[6] / 2.0) * 0.005 + localDW->UnitDelay2_DSTATE[1];
-  localDW->filter.pState[2] = ((localDW->UnitDelay2_DSTATE[3] *
-    localDW->UnitDelay2_DSTATE[4] / 2.0 + localDW->UnitDelay2_DSTATE[0] *
-    localDW->UnitDelay2_DSTATE[5] / 2.0) - localDW->UnitDelay2_DSTATE[1] *
-    localDW->UnitDelay2_DSTATE[6] / 2.0) * 0.005 + localDW->UnitDelay2_DSTATE[2];
-  localDW->filter.pState[3] = ((localDW->UnitDelay2_DSTATE[1] *
-    localDW->UnitDelay2_DSTATE[5] / 2.0 - localDW->UnitDelay2_DSTATE[2] *
-    localDW->UnitDelay2_DSTATE[4] / 2.0) + localDW->UnitDelay2_DSTATE[0] *
-    localDW->UnitDelay2_DSTATE[6] / 2.0) * 0.005 + localDW->UnitDelay2_DSTATE[3];
-  localDW->filter.pState[4] = localDW->UnitDelay2_DSTATE[4];
-  localDW->filter.pState[5] = localDW->UnitDelay2_DSTATE[5];
-  localDW->filter.pState[6] = localDW->UnitDelay2_DSTATE[6];
-  localDW->filter.pState[7] = 0.005 * localDW->UnitDelay2_DSTATE[10] +
-    localDW->UnitDelay2_DSTATE[7];
-  localDW->filter.pState[8] = 0.005 * localDW->UnitDelay2_DSTATE[11] +
-    localDW->UnitDelay2_DSTATE[8];
-  localDW->filter.pState[9] = 0.005 * localDW->UnitDelay2_DSTATE[12] +
-    localDW->UnitDelay2_DSTATE[9];
-  localDW->filter.pState[10] = 0.005 * localDW->UnitDelay2_DSTATE[13] +
-    localDW->UnitDelay2_DSTATE[10];
-  localDW->filter.pState[11] = 0.005 * localDW->UnitDelay2_DSTATE[14] +
-    localDW->UnitDelay2_DSTATE[11];
-  localDW->filter.pState[12] = 0.005 * localDW->UnitDelay2_DSTATE[15] +
-    localDW->UnitDelay2_DSTATE[12];
-  memcpy(&localDW->filter.pState[13], &localDW->UnitDelay2_DSTATE[13], 15U *
-         sizeof(real_T));
-  BasicEKF_repairQuaternion(&localDW->filter, localDW->filter.pState);
-  for (i = 0; i < 28; i++) {
-    for (i_0 = 0; i_0 < 28; i_0++) {
-      i_1 = 28 * i + i_0;
-      localDW->filter.pStateCovariance[i_1] = (localDW->Pdot[28 * i_0 + i] +
-        localDW->Pdot[i_1]) * 0.5 * 0.005 + localDW->UnitDelay3_DSTATE[i_1];
-    }
-  }
-
-  position[2] = localDW->filter.ReferenceLocation[2];
-  velocity[2] = 0.0;
+  localDW->filter.ReferenceLocation[0] = rtP.location_lla_IC[0];
+  localDW->filter.ReferenceLocation[1] = rtP.location_lla_IC[1];
+  localDW->filter.ReferenceLocation[2] = rtP.location_lla_IC[2];
+  xk[24] = localDW->UnitDelay2_DSTATE[24];
+  xk[23] = localDW->UnitDelay2_DSTATE[23];
+  xk[22] = localDW->UnitDelay2_DSTATE[22];
+  memcpy(&localDW->filter.pState[0], &xk[0], 28U * sizeof(real_T));
+  memcpy(&localDW->filter.pStateCovariance[0], &localDW->UnitDelay3_DSTATE[0],
+         784U * sizeof(real_T));
+  localDW->filter.QuaternionNoise[0] = rtP.noise_state[0];
+  localDW->filter.QuaternionNoise[1] = rtP.noise_state[1];
+  localDW->filter.QuaternionNoise[2] = rtP.noise_state[2];
+  localDW->filter.QuaternionNoise[3] = rtP.noise_state[3];
+  localDW->filter.AngularVelocityNoise[0] = rtP.noise_state[4];
+  localDW->filter.PositionNoise[0] = rtP.noise_state[7];
+  localDW->filter.VelocityNoise[0] = rtP.noise_state[10];
+  localDW->filter.AccelerationNoise[0] = rtP.noise_state[13];
+  localDW->filter.GyroscopeBiasNoise[0] = rtP.noise_state[16];
+  localDW->filter.AccelerometerBiasNoise[0] = rtP.noise_state[19];
+  localDW->filter.GeomagneticVectorNoise[0] = rtP.noise_state[22];
+  localDW->filter.MagnetometerBiasNoise[0] = rtP.noise_state[25];
+  localDW->filter.AngularVelocityNoise[1] = rtP.noise_state[5];
+  localDW->filter.PositionNoise[1] = rtP.noise_state[8];
+  localDW->filter.VelocityNoise[1] = rtP.noise_state[11];
+  localDW->filter.AccelerationNoise[1] = rtP.noise_state[14];
+  localDW->filter.GyroscopeBiasNoise[1] = rtP.noise_state[17];
+  localDW->filter.AccelerometerBiasNoise[1] = rtP.noise_state[20];
+  localDW->filter.GeomagneticVectorNoise[1] = rtP.noise_state[23];
+  localDW->filter.MagnetometerBiasNoise[1] = rtP.noise_state[26];
+  localDW->filter.AngularVelocityNoise[2] = rtP.noise_state[6];
+  localDW->filter.PositionNoise[2] = rtP.noise_state[9];
+  localDW->filter.VelocityNoise[2] = rtP.noise_state[12];
+  localDW->filter.AccelerationNoise[2] = rtP.noise_state[15];
+  localDW->filter.GyroscopeBiasNoise[2] = rtP.noise_state[18];
+  localDW->filter.AccelerometerBiasNoise[2] = rtP.noise_state[21];
+  localDW->filter.GeomagneticVectorNoise[2] = rtP.noise_state[24];
+  localDW->filter.MagnetometerBiasNoise[2] = rtP.noise_state[27];
+  AsyncMARGGPSFuserBase_predict(&localDW->filter, rtP.fusion_t, localDW);
 
   /* MATLAB Function: '<S2>/SNED to VNED' */
   for (i = 0; i < 3; i++) {
-    tmp[i] = (rtConstP.SNEDtoVNED_IMUNED2VNED[i + 3] * rtu_sensor_raw[1] +
-              rtConstP.SNEDtoVNED_IMUNED2VNED[i] * rtu_sensor_raw[0]) +
-      rtConstP.SNEDtoVNED_IMUNED2VNED[i + 6] * rtu_sensor_raw[2];
+    IMUNED2VNED_0[i] = (IMUNED2VNED[i + 3] * rtu_sensor_raw[1] + IMUNED2VNED[i] *
+                        rtu_sensor_raw[0]) + IMUNED2VNED[i + 6] *
+      rtu_sensor_raw[2];
   }
 
   /* MATLAB Function: '<S2>/fusion' */
-  AsyncMARGGPSFuserBase_fuseaccel(&localDW->filter, tmp, 800.0, localDW);
-  memset(&rtb_rot_map[0], 0, 9U * sizeof(real_T));
-  rtb_rot_map[0] = 0.0001;
-  rtb_rot_map[4] = 0.0001;
-  rtb_rot_map[8] = 0.0001;
+  AsyncMARGGPSFuserBase_fuseaccel(&localDW->filter, IMUNED2VNED_0, rtP.covA,
+    localDW);
+  memset(&measNoise[0], 0, 9U * sizeof(real_T));
+  measNoise[0] = rtP.covG;
+  measNoise[4] = rtP.covG;
+  measNoise[8] = rtP.covG;
   memcpy(&xk[0], &localDW->filter.pState[0], 28U * sizeof(real_T));
   xk[24] = localDW->filter.pState[24];
   xk[23] = localDW->filter.pState[23];
   xk[22] = localDW->filter.pState[22];
-  memcpy(&localDW->procNoise[0], &localDW->filter.pStateCovariance[0], 784U *
-         sizeof(real_T));
+  memcpy(&localDW->val[0], &localDW->filter.pStateCovariance[0], 784U * sizeof
+         (real_T));
   filter[0] = localDW->filter.pState[4] + localDW->filter.pState[19];
   filter[1] = localDW->filter.pState[5] + localDW->filter.pState[20];
   filter[2] = localDW->filter.pState[6] + localDW->filter.pState[21];
 
   /* MATLAB Function: '<S2>/SNED to VNED' */
   for (i = 0; i < 3; i++) {
-    tmp[i] = (rtConstP.SNEDtoVNED_IMUNED2VNED[i + 3] * rtu_sensor_raw_p[1] +
-              rtConstP.SNEDtoVNED_IMUNED2VNED[i] * rtu_sensor_raw_p[0]) +
-      rtConstP.SNEDtoVNED_IMUNED2VNED[i + 6] * rtu_sensor_raw_p[2];
+    IMUNED2VNED_0[i] = (IMUNED2VNED[i + 3] * rtu_sensor_raw_p[1] + IMUNED2VNED[i]
+                        * rtu_sensor_raw_p[0]) + IMUNED2VNED[i + 6] *
+      rtu_sensor_raw_p[2];
   }
 
+  real_T tmp_0;
   real_T tmp_1;
   real_T tmp_2;
   real_T tmp_3;
@@ -1413,246 +1500,339 @@ static void SFS_d(const real_T rtu_sensor_raw[3], const real_T rtu_sensor_raw_p
   real_T tmp_7;
   real_T tmp_8;
   real_T tmp_9;
-  real_T tmp_a;
   real_T xk_tmp;
   real_T xk_tmp_0;
-  real_T xk_tmp_1;
   real_T xk_tmp_2;
+
+  /* MATLAB Function: '<S2>/fusion' */
+  BasicEKF_correctEqn(&localDW->filter, xk, localDW->val, filter, c,
+                      IMUNED2VNED_0, measNoise, res, IMUNED2VNED, localDW);
+  memcpy(&localDW->filter.pStateCovariance[0], &localDW->val[0], 784U * sizeof
+         (real_T));
+  memcpy(&localDW->filter.pState[0], &xk[0], 28U * sizeof(real_T));
+  memset(&measNoise[0], 0, 9U * sizeof(real_T));
+
+  /* MATLAB Function: '<S2>/SNED to VNED' */
+  xk_tmp = sin(n);
+  xk_tmp_0 = cos(n);
+  tmp_0 = 6.123233995736766E-17 * xk_tmp;
+  tmp_1 = 6.123233995736766E-17 * xk_tmp_0;
+  quaternionBase_rotmat(tmp_1 - xk_tmp * 0.0, tmp_0 * 0.0 + xk_tmp_0, tmp_0 -
+                        xk_tmp_0 * 0.0, tmp_1 * 0.0 + xk_tmp, IMUNED2VNED);
 
   /* MATLAB Function: '<S2>/fusion' incorporates:
    *  MATLAB Function: '<S2>/SNED to VNED'
+   *  UnitDelay: '<S2>/Unit Delay1'
    */
-  BasicEKF_correctEqn(&localDW->filter, xk, localDW->procNoise, filter, k, tmp,
-                      rtb_rot_map, res, resCov, localDW);
-  memcpy(&localDW->filter.pStateCovariance[0], &localDW->procNoise[0], 784U *
-         sizeof(real_T));
-  memcpy(&localDW->filter.pState[0], &xk[0], 28U * sizeof(real_T));
-  memset(&rtb_rot_map[0], 0, 9U * sizeof(real_T));
-  n = xk[0] * xk[0];
-  aasq = xk[1] * xk[1];
+  IMUNED2VNED_tmp = xk[0] * xk[0];
+  q = xk[1] * xk[1];
   xk_tmp = xk[2] * xk[2];
   xk_tmp_0 = xk[3] * xk[3];
-  dfdx_tmp = 2.0 * xk[0] * xk[3];
-  dfdx_tmp_0 = 2.0 * xk[1] * xk[2];
-  ab2 = 2.0 * xk[0] * xk[2];
-  ac2 = 2.0 * xk[1] * xk[3];
-  ad2 = ((n + aasq) - xk_tmp) - xk_tmp_0;
-  bc2 = dfdx_tmp + dfdx_tmp_0;
-  filter[0] = ((ad2 * xk[22] + xk[25]) - (ab2 - ac2) * xk[24]) + bc2 * xk[23];
-  n -= aasq;
-  aasq = 2.0 * xk[0] * xk[1];
-  bd2 = 2.0 * xk[2] * xk[3];
-  cd2 = (n + xk_tmp) - xk_tmp_0;
-  xk_tmp_1 = aasq + bd2;
-  filter[1] = ((cd2 * xk[23] + xk[26]) + xk_tmp_1 * xk[24]) - (dfdx_tmp -
-    dfdx_tmp_0) * xk[22];
-  xk_tmp_2 = ab2 + ac2;
-  n = (n - xk_tmp) + xk_tmp_0;
-  filter[2] = ((n * xk[24] + xk[27]) - (aasq - bd2) * xk[23]) + xk_tmp_2 * xk[22];
+  n = 2.0 * xk[0] * xk[3];
+  aasq = 2.0 * xk[1] * xk[2];
+  xk_tmp_1 = 2.0 * xk[0] * xk[2];
+  ab2 = 2.0 * xk[1] * xk[3];
+  ac2 = ((IMUNED2VNED_tmp + q) - xk_tmp) - xk_tmp_0;
+  ad2 = n + aasq;
+  IMUNED2VNED_0[0] = ((ac2 * xk[22] + xk[25]) - (xk_tmp_1 - ab2) * xk[24]) + ad2
+    * xk[23];
+  IMUNED2VNED_tmp -= q;
+  q = 2.0 * xk[0] * xk[1];
+  bc2 = 2.0 * xk[2] * xk[3];
+  bd2 = (IMUNED2VNED_tmp + xk_tmp) - xk_tmp_0;
+  cd2 = q + bc2;
+  IMUNED2VNED_0[1] = ((bd2 * xk[23] + xk[26]) + cd2 * xk[24]) - (n - aasq) * xk
+    [22];
+  xk_tmp_2 = xk_tmp_1 + ab2;
+  IMUNED2VNED_tmp = (IMUNED2VNED_tmp - xk_tmp) + xk_tmp_0;
+  IMUNED2VNED_0[2] = ((IMUNED2VNED_tmp * xk[24] + xk[27]) - (q - bc2) * xk[23])
+    + xk_tmp_2 * xk[22];
   xk_tmp = 2.0 * xk[24] * xk[2];
   xk_tmp_0 = 2.0 * xk[23] * xk[3];
-  tmp_6 = 2.0 * xk[22] * xk[0];
-  tmp_a = (xk_tmp_0 - xk_tmp) + tmp_6;
-  tmp_0[0] = tmp_a;
-  tmp_5 = (2.0 * xk[24] * xk[3] + 2.0 * xk[23] * xk[2]) + 2.0 * xk[22] * xk[1];
-  tmp_0[3] = tmp_5;
-  tmp_2 = 2.0 * xk[24] * xk[0];
-  tmp_3 = 2.0 * xk[23] * xk[1];
-  tmp_4 = 2.0 * xk[22] * xk[2];
-  tmp_0[6] = (tmp_3 - tmp_2) - tmp_4;
+  tmp_0 = 2.0 * xk[22] * xk[0];
+  tmp_1 = (xk_tmp_0 - xk_tmp) + tmp_0;
+  tmp[0] = tmp_1;
+  tmp_6 = (2.0 * xk[24] * xk[3] + 2.0 * xk[23] * xk[2]) + 2.0 * xk[22] * xk[1];
+  tmp[3] = tmp_6;
+  tmp_3 = 2.0 * xk[24] * xk[0];
+  tmp_4 = 2.0 * xk[23] * xk[1];
+  tmp_5 = 2.0 * xk[22] * xk[2];
+  tmp[6] = (tmp_4 - tmp_3) - tmp_5;
   tmp_7 = 2.0 * xk[22] * xk[3];
   tmp_8 = 2.0 * xk[23] * xk[0];
   tmp_9 = 2.0 * xk[24] * xk[1];
-  tmp_1 = (tmp_9 + tmp_8) - tmp_7;
-  tmp_0[9] = tmp_1;
-  tmp_0[12] = 0.0;
-  tmp_0[15] = 0.0;
-  tmp_0[18] = 0.0;
-  tmp_0[21] = 0.0;
-  tmp_0[24] = 0.0;
-  tmp_0[27] = 0.0;
-  tmp_0[30] = 0.0;
-  tmp_0[33] = 0.0;
-  tmp_0[36] = 0.0;
-  tmp_0[39] = 0.0;
-  tmp_0[42] = 0.0;
-  tmp_0[45] = 0.0;
-  tmp_0[48] = 0.0;
-  tmp_0[51] = 0.0;
-  tmp_0[54] = 0.0;
-  tmp_0[57] = 0.0;
-  tmp_0[60] = 0.0;
-  tmp_0[63] = 0.0;
-  tmp_0[66] = ad2;
-  tmp_0[69] = bc2;
-  tmp_0[72] = ac2 - ab2;
-  tmp_0[75] = 1.0;
-  tmp_0[78] = 0.0;
-  tmp_0[81] = 0.0;
-  tmp_0[1] = tmp_1;
-  tmp_2 = (tmp_2 - tmp_3) + tmp_4;
-  tmp_0[4] = tmp_2;
-  tmp_0[7] = tmp_5;
-  tmp_0[10] = (xk_tmp - xk_tmp_0) - tmp_6;
-  tmp_0[13] = 0.0;
-  tmp_0[16] = 0.0;
-  tmp_0[19] = 0.0;
-  tmp_0[22] = 0.0;
-  tmp_0[25] = 0.0;
-  tmp_0[28] = 0.0;
-  tmp_0[31] = 0.0;
-  tmp_0[34] = 0.0;
-  tmp_0[37] = 0.0;
-  tmp_0[40] = 0.0;
-  tmp_0[43] = 0.0;
-  tmp_0[46] = 0.0;
-  tmp_0[49] = 0.0;
-  tmp_0[52] = 0.0;
-  tmp_0[55] = 0.0;
-  tmp_0[58] = 0.0;
-  tmp_0[61] = 0.0;
-  tmp_0[64] = 0.0;
-  tmp_0[67] = dfdx_tmp_0 - dfdx_tmp;
-  tmp_0[70] = cd2;
-  tmp_0[73] = xk_tmp_1;
-  tmp_0[76] = 0.0;
-  tmp_0[79] = 1.0;
-  tmp_0[82] = 0.0;
-  tmp_0[2] = tmp_2;
-  tmp_0[5] = (tmp_7 - tmp_8) - tmp_9;
-  tmp_0[8] = tmp_a;
-  tmp_0[11] = tmp_5;
-  tmp_0[14] = 0.0;
-  tmp_0[17] = 0.0;
-  tmp_0[20] = 0.0;
-  tmp_0[23] = 0.0;
-  tmp_0[26] = 0.0;
-  tmp_0[29] = 0.0;
-  tmp_0[32] = 0.0;
-  tmp_0[35] = 0.0;
-  tmp_0[38] = 0.0;
-  tmp_0[41] = 0.0;
-  tmp_0[44] = 0.0;
-  tmp_0[47] = 0.0;
-  tmp_0[50] = 0.0;
-  tmp_0[53] = 0.0;
-  tmp_0[56] = 0.0;
-  tmp_0[59] = 0.0;
-  tmp_0[62] = 0.0;
-  tmp_0[65] = 0.0;
-  tmp_0[68] = xk_tmp_2;
-  tmp_0[71] = bd2 - aasq;
-  tmp_0[74] = n;
-  tmp_0[77] = 0.0;
-  tmp_0[80] = 0.0;
-  tmp_0[83] = 1.0;
+  tmp_2 = (tmp_9 + tmp_8) - tmp_7;
+  tmp[9] = tmp_2;
+  tmp[12] = 0.0;
+  tmp[15] = 0.0;
+  tmp[18] = 0.0;
+  tmp[21] = 0.0;
+  tmp[24] = 0.0;
+  tmp[27] = 0.0;
+  tmp[30] = 0.0;
+  tmp[33] = 0.0;
+  tmp[36] = 0.0;
+  tmp[39] = 0.0;
+  tmp[42] = 0.0;
+  tmp[45] = 0.0;
+  tmp[48] = 0.0;
+  tmp[51] = 0.0;
+  tmp[54] = 0.0;
+  tmp[57] = 0.0;
+  tmp[60] = 0.0;
+  tmp[63] = 0.0;
+  tmp[66] = ac2;
+  tmp[69] = ad2;
+  tmp[72] = ab2 - xk_tmp_1;
+  tmp[75] = 1.0;
+  tmp[78] = 0.0;
+  tmp[81] = 0.0;
+  tmp[1] = tmp_2;
+  tmp_3 = (tmp_3 - tmp_4) + tmp_5;
+  tmp[4] = tmp_3;
+  tmp[7] = tmp_6;
+  tmp[10] = (xk_tmp - xk_tmp_0) - tmp_0;
+  tmp[13] = 0.0;
+  tmp[16] = 0.0;
+  tmp[19] = 0.0;
+  tmp[22] = 0.0;
+  tmp[25] = 0.0;
+  tmp[28] = 0.0;
+  tmp[31] = 0.0;
+  tmp[34] = 0.0;
+  tmp[37] = 0.0;
+  tmp[40] = 0.0;
+  tmp[43] = 0.0;
+  tmp[46] = 0.0;
+  tmp[49] = 0.0;
+  tmp[52] = 0.0;
+  tmp[55] = 0.0;
+  tmp[58] = 0.0;
+  tmp[61] = 0.0;
+  tmp[64] = 0.0;
+  tmp[67] = aasq - n;
+  tmp[70] = bd2;
+  tmp[73] = cd2;
+  tmp[76] = 0.0;
+  tmp[79] = 1.0;
+  tmp[82] = 0.0;
+  tmp[2] = tmp_3;
+  tmp[5] = (tmp_7 - tmp_8) - tmp_9;
+  tmp[8] = tmp_1;
+  tmp[11] = tmp_6;
+  tmp[14] = 0.0;
+  tmp[17] = 0.0;
+  tmp[20] = 0.0;
+  tmp[23] = 0.0;
+  tmp[26] = 0.0;
+  tmp[29] = 0.0;
+  tmp[32] = 0.0;
+  tmp[35] = 0.0;
+  tmp[38] = 0.0;
+  tmp[41] = 0.0;
+  tmp[44] = 0.0;
+  tmp[47] = 0.0;
+  tmp[50] = 0.0;
+  tmp[53] = 0.0;
+  tmp[56] = 0.0;
+  tmp[59] = 0.0;
+  tmp[62] = 0.0;
+  tmp[65] = 0.0;
+  tmp[68] = xk_tmp_2;
+  tmp[71] = bc2 - q;
+  tmp[74] = IMUNED2VNED_tmp;
+  tmp[77] = 0.0;
+  tmp[80] = 0.0;
+  tmp[83] = 1.0;
   for (i = 0; i < 3; i++) {
-    rtb_rot_map[i + 3 * i] = 80.0;
-    tmp[i] = (rtConstP.SNEDtoVNED_MAGNED2VNED[i + 3] * rtu_sensor_raw_j[1] +
-              rtConstP.SNEDtoVNED_MAGNED2VNED[i] * rtu_sensor_raw_j[0]) +
-      rtConstP.SNEDtoVNED_MAGNED2VNED[i + 6] * rtu_sensor_raw_j[2];
+    measNoise[i + 3 * i] = rtP.covM;
+    filter[i] = (IMUNED2VNED[i + 3] * rtu_sensor_raw_j[1] + IMUNED2VNED[i] *
+                 rtu_sensor_raw_j[0]) + IMUNED2VNED[i + 6] * rtu_sensor_raw_j[2];
   }
 
-  BasicEKF_correctEqn(&localDW->filter, xk, localDW->procNoise, filter, tmp_0,
-                      tmp, rtb_rot_map, res, resCov, localDW);
-  memcpy(&localDW->filter.pStateCovariance[0], &localDW->procNoise[0], 784U *
-         sizeof(real_T));
+  BasicEKF_correctEqn(&localDW->filter, xk, localDW->val, IMUNED2VNED_0, tmp,
+                      filter, measNoise, res, IMUNED2VNED, localDW);
+  memcpy(&localDW->filter.pStateCovariance[0], &localDW->val[0], 784U * sizeof
+         (real_T));
   memcpy(&localDW->filter.pState[0], &xk[0], 28U * sizeof(real_T));
-  AsyncMARGGPSFuserBase_fusegps(&localDW->filter, position, 34.0, velocity,
-    0.0464, localDW);
+  if (!(localDW->UnitDelay1_DSTATE != 0.0)) {
+    AsyncMARGGPSFuserBase_fusegps(&localDW->filter, rtu_sensor_raw_h, rtP.covP,
+      rtu_sensor_raw_d, rtP.covV, localDW);
+  }
+
+  IMUNED2VNED_tmp = localDW->UnitDelay1_DSTATE + 1.0;
+  if (rtP.gps_ratio == 0.0) {
+    if (localDW->UnitDelay1_DSTATE + 1.0 == 0.0) {
+      IMUNED2VNED_tmp = rtP.gps_ratio;
+    }
+  } else if (rtIsNaN(localDW->UnitDelay1_DSTATE + 1.0)) {
+    IMUNED2VNED_tmp = (rtNaN);
+  } else if (rtIsNaN(rtP.gps_ratio)) {
+    IMUNED2VNED_tmp = (rtNaN);
+  } else if (rtIsInf(localDW->UnitDelay1_DSTATE + 1.0)) {
+    IMUNED2VNED_tmp = (rtNaN);
+  } else if (localDW->UnitDelay1_DSTATE + 1.0 == 0.0) {
+    IMUNED2VNED_tmp = 0.0 / rtP.gps_ratio;
+  } else if (rtIsInf(rtP.gps_ratio)) {
+    if ((localDW->UnitDelay1_DSTATE + 1.0 < 0.0) != (rtP.gps_ratio < 0.0)) {
+      IMUNED2VNED_tmp = rtP.gps_ratio;
+    }
+  } else {
+    boolean_T rEQ0;
+    IMUNED2VNED_tmp = fmod(localDW->UnitDelay1_DSTATE + 1.0, rtP.gps_ratio);
+    rEQ0 = (IMUNED2VNED_tmp == 0.0);
+    if ((!rEQ0) && (rtP.gps_ratio > floor(rtP.gps_ratio))) {
+      q = fabs((localDW->UnitDelay1_DSTATE + 1.0) / rtP.gps_ratio);
+      rEQ0 = !(fabs(q - floor(q + 0.5)) > 2.2204460492503131E-16 * q);
+    }
+
+    if (rEQ0) {
+      IMUNED2VNED_tmp = rtP.gps_ratio * 0.0;
+    } else if ((localDW->UnitDelay1_DSTATE + 1.0 < 0.0) != (rtP.gps_ratio < 0.0))
+    {
+      IMUNED2VNED_tmp += rtP.gps_ratio;
+    }
+  }
+
   memcpy(&xk[0], &localDW->filter.pState[0], 28U * sizeof(real_T));
   n = sqrt(((xk[0] * xk[0] + xk[1] * xk[1]) + xk[2] * xk[2]) + xk[3] * xk[3]);
   aasq = xk[0] / n;
-  dfdx_tmp = xk[1] / n;
-  dfdx_tmp_0 = xk[2] / n;
+  q = xk[1] / n;
+  xk_tmp_1 = xk[2] / n;
   n = xk[3] / n;
-  ab2 = aasq * dfdx_tmp * 2.0;
-  ac2 = aasq * dfdx_tmp_0 * 2.0;
+  ab2 = aasq * q * 2.0;
+  ac2 = aasq * xk_tmp_1 * 2.0;
   ad2 = aasq * n * 2.0;
-  bc2 = dfdx_tmp * dfdx_tmp_0 * 2.0;
-  bd2 = dfdx_tmp * n * 2.0;
-  cd2 = dfdx_tmp_0 * n * 2.0;
+  bc2 = q * xk_tmp_1 * 2.0;
+  bd2 = q * n * 2.0;
+  cd2 = xk_tmp_1 * n * 2.0;
   aasq = aasq * aasq * 2.0 - 1.0;
-  rtb_rot_map[0] = dfdx_tmp * dfdx_tmp * 2.0 + aasq;
-  rtb_rot_map[3] = bc2 + ad2;
-  rtb_rot_map[6] = bd2 - ac2;
-  rtb_rot_map[1] = bc2 - ad2;
-  rtb_rot_map[4] = dfdx_tmp_0 * dfdx_tmp_0 * 2.0 + aasq;
-  rtb_rot_map[7] = cd2 + ab2;
-  rtb_rot_map[2] = bd2 + ac2;
-  rtb_rot_map[5] = cd2 - ab2;
-  rtb_rot_map[8] = n * n * 2.0 + aasq;
-  memcpy(&xk[0], &localDW->filter.pState[0], 28U * sizeof(real_T));
-  xk[24] = localDW->filter.pState[24];
-  xk[23] = localDW->filter.pState[23];
-  xk[22] = localDW->filter.pState[22];
+  IMUNED2VNED[0] = q * q * 2.0 + aasq;
+  IMUNED2VNED[3] = bc2 + ad2;
+  IMUNED2VNED[6] = bd2 - ac2;
+  IMUNED2VNED[1] = bc2 - ad2;
+  IMUNED2VNED[4] = xk_tmp_1 * xk_tmp_1 * 2.0 + aasq;
+  IMUNED2VNED[7] = cd2 + ab2;
+  IMUNED2VNED[2] = bd2 + ac2;
+  IMUNED2VNED[5] = cd2 - ab2;
+  IMUNED2VNED[8] = n * n * 2.0 + aasq;
 
   /* Math: '<S2>/Transpose11' incorporates:
    *  MATLAB Function: '<S2>/NED2VNED'
    */
-  rty_sensor_fused_p[0] = xk[0];
-  rty_sensor_fused_p[1] = xk[1];
-  rty_sensor_fused_p[2] = xk[2];
-  rty_sensor_fused_p[3] = xk[3];
+  rty_sensor_fused_p[0] = localDW->filter.pState[0];
+  rty_sensor_fused_p[1] = localDW->filter.pState[1];
+  rty_sensor_fused_p[2] = localDW->filter.pState[2];
+  rty_sensor_fused_p[3] = localDW->filter.pState[3];
   for (i = 0; i < 3; i++) {
     /* Math: '<S2>/Transpose10' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused[i] = xk[i + 4];
-
-    /* MATLAB Function: '<S2>/NED2VNED' */
-    n = rtb_rot_map[i];
-    aasq = n * xk[25];
-    dfdx_tmp = n * xk[19];
-    dfdx_tmp_0 = n * xk[10];
-    ab2 = n * xk[13];
-    ac2 = n * xk[22];
-    ad2 = n * xk[16];
-    bc2 = n * xk[7];
-    n = rtb_rot_map[i + 3];
-    aasq += n * xk[26];
-    dfdx_tmp += n * xk[20];
-    dfdx_tmp_0 += n * xk[11];
-    ab2 += n * xk[14];
-    ac2 += n * xk[23];
-    ad2 += n * xk[17];
-    bc2 += n * xk[8];
-    n = rtb_rot_map[i + 6];
+    rty_sensor_fused[i] = localDW->filter.pState[i + 4];
 
     /* Math: '<S2>/Transpose3' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused_f[i] = n * xk[27] + aasq;
+    rty_sensor_fused_f[i] = localDW->filter.pState[i + 25];
 
     /* Math: '<S2>/Transpose4' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused_c[i] = n * xk[21] + dfdx_tmp;
+    rty_sensor_fused_c[i] = 0.0;
 
     /* Math: '<S2>/Transpose5' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused_d[i] = n * xk[12] + dfdx_tmp_0;
+    rty_sensor_fused_d[i] = 0.0;
 
     /* Math: '<S2>/Transpose6' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused_h[i] = n * xk[15] + ab2;
+    rty_sensor_fused_h[i] = 0.0;
 
     /* Math: '<S2>/Transpose7' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused_pa[i] = n * xk[24] + ac2;
+    rty_sensor_fused_pa[i] = localDW->filter.pState[i + 22];
 
     /* Math: '<S2>/Transpose8' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused_g[i] = n * xk[18] + ad2;
+    rty_sensor_fused_g[i] = 0.0;
+
+    /* MATLAB Function: '<S2>/NED2VNED' */
+    q = IMUNED2VNED[i];
+
+    /* Math: '<S2>/Transpose4' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_c[i] += q * localDW->filter.pState[19];
+
+    /* Math: '<S2>/Transpose5' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_d[i] += q * localDW->filter.pState[10];
+
+    /* Math: '<S2>/Transpose6' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_h[i] += q * localDW->filter.pState[13];
+
+    /* Math: '<S2>/Transpose8' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_g[i] += q * localDW->filter.pState[16];
+
+    /* MATLAB Function: '<S2>/NED2VNED' */
+    q = IMUNED2VNED[i + 3];
+
+    /* Math: '<S2>/Transpose4' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_c[i] += q * localDW->filter.pState[20];
+
+    /* Math: '<S2>/Transpose5' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_d[i] += q * localDW->filter.pState[11];
+
+    /* Math: '<S2>/Transpose6' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_h[i] += q * localDW->filter.pState[14];
+
+    /* Math: '<S2>/Transpose8' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_g[i] += q * localDW->filter.pState[17];
+
+    /* MATLAB Function: '<S2>/NED2VNED' */
+    q = IMUNED2VNED[i + 6];
+
+    /* Math: '<S2>/Transpose4' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_c[i] += q * localDW->filter.pState[21];
+
+    /* Math: '<S2>/Transpose5' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_d[i] += q * localDW->filter.pState[12];
+
+    /* Math: '<S2>/Transpose6' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_h[i] += q * localDW->filter.pState[15];
+
+    /* Math: '<S2>/Transpose8' incorporates:
+     *  MATLAB Function: '<S2>/NED2VNED'
+     */
+    rty_sensor_fused_g[i] += q * localDW->filter.pState[18];
 
     /* Math: '<S2>/Transpose9' incorporates:
      *  MATLAB Function: '<S2>/NED2VNED'
      */
-    rty_sensor_fused_j[i] = n * xk[9] + bc2;
+    rty_sensor_fused_j[i] = localDW->filter.pState[i + 7];
   }
 
   /* Update for UnitDelay: '<S2>/Unit Delay3' incorporates:
@@ -1661,42 +1841,30 @@ static void SFS_d(const real_T rtu_sensor_raw[3], const real_T rtu_sensor_raw_p
   memcpy(&localDW->UnitDelay3_DSTATE[0], &localDW->filter.pStateCovariance[0],
          784U * sizeof(real_T));
 
+  /* Update for UnitDelay: '<S2>/Unit Delay1' incorporates:
+   *  MATLAB Function: '<S2>/fusion'
+   */
+  localDW->UnitDelay1_DSTATE = IMUNED2VNED_tmp;
+
   /* Update for UnitDelay: '<S2>/Unit Delay2' */
-  memcpy(&localDW->UnitDelay2_DSTATE[0], &xk[0], 28U * sizeof(real_T));
+  memcpy(&localDW->UnitDelay2_DSTATE[0], &localDW->filter.pState[0], 28U *
+         sizeof(real_T));
 }
 
 /* Model step function */
-void SFS_step(RT_MODEL *const rtM, real_T rtU_vel[3], real_T rtU_pos[3], real_T
-              rtU_acc[3], real_T rtU_mag[3], real_T rtU_gyro[3], real_T
-              rtY_angvel_VNED[3], real_T rtY_ang_NED[4], real_T rtY_pos_VNED[3],
-              real_T rtY_vel_VNED[3], real_T rtY_acc_VNED[3], real_T
-              rtY_mag_VNED[3], real_T rtY_acc_bias_VNED[3], real_T
-              rtY_gyro_bias_VNED[3], real_T rtY_mag_bias_VNED[3])
+void SFS_step(RT_MODEL *const rtM, ExtU *rtU, ExtY *rtY)
 {
   DW *rtDW = rtM->dwork;
+  if (rtM->Timing.TaskCounters.TID[1] == 0) {
+    /* Outputs for Atomic SubSystem: '<Root>/SFS' */
+    SFS_d(rtU->acc, rtU->gyro, rtU->mag, rtU->vel, rtU->pos, rtY->angvel_VNED,
+          rtY->ang_NED, rtY->pos_VNED, rtY->vel_VNED, rtY->acc_VNED,
+          rtY->mag_VNED, rtY->acc_bias_VNED, rtY->gyro_bias_VNED,
+          rtY->mag_bias_VNED, &rtDW->SFS_ds);
 
-  /* Outputs for Atomic SubSystem: '<Root>/SFS' */
+    /* End of Outputs for SubSystem: '<Root>/SFS' */
+  }
 
-  /* Inport: '<Root>/acc' incorporates:
-   *  Inport: '<Root>/gyro'
-   *  Inport: '<Root>/mag'
-   *  Inport: '<Root>/pos'
-   *  Inport: '<Root>/vel'
-   *  Outport: '<Root>/acc_VNED'
-   *  Outport: '<Root>/acc_bias_VNED'
-   *  Outport: '<Root>/ang_NED'
-   *  Outport: '<Root>/angvel_VNED'
-   *  Outport: '<Root>/gyro_bias_VNED'
-   *  Outport: '<Root>/mag_VNED'
-   *  Outport: '<Root>/mag_bias_VNED'
-   *  Outport: '<Root>/pos_VNED'
-   *  Outport: '<Root>/vel_VNED'
-   */
-  SFS_d(rtU_acc, rtU_gyro, rtU_mag, rtU_vel, rtU_pos, rtY_angvel_VNED,
-        rtY_ang_NED, rtY_pos_VNED, rtY_vel_VNED, rtY_acc_VNED, rtY_mag_VNED,
-        rtY_acc_bias_VNED, rtY_gyro_bias_VNED, rtY_mag_bias_VNED, &rtDW->SFS_ds);
-
-  /* End of Outputs for SubSystem: '<Root>/SFS' */
   rate_scheduler(rtM);
 }
 
