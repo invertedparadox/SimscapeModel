@@ -206,10 +206,7 @@ Rm = 0.079375; % m
 disk_abore = 0.0254; % m
 mu_kinetic = 0.4; % none 
 mu_static = 0.5; % none
-brake_bias = [0.375 0.375 0.125 0.125]; % percent
-di2bp = 20; % MPa
-brakecoeff = [61.33 61.33 40.54 40.54]; % Nm/MPa
-
+brake_bias = [0.4 0.4, 0.1 0.1]; % percent
 P2T = (mu_kinetic*pi*(disk_abore^2)*Rm*num_pads)./(4);
 
 Fz = [0 204.13 427.04 668.1 895.72 1124.40 1324.40]; % tire normal force sample points (N)
@@ -278,7 +275,7 @@ dIndex = 50;                % number of future track points
 forward_look_straight = 5;  % number of future track points considered if current or future is a straightaway
 forward_look_turn = 15;     % number of future track points considered if current and future is a turn
 q_thresh = 0.05;            % threshhold between quadrants in cartesian plane
-axb = -4;                   % m/s^2 Braking decceleration
+axb = -6.25;                   % m/s^2 Braking decceleration
 alpha_brake = 0.025;
 
 % indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
