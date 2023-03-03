@@ -24,4 +24,4 @@ minMotorTemp = 75;
 motorTempX = minMotorTemp : (maxMotorTemp-minMotorTemp) / STEPS : maxMotorTemp;
 motorTempCurve = 140 -  (motorTempX - minMotorTemp) .^ 2 .* (140) / (maxMotorTemp - minMotorTemp)^2;
 
-CURRENT_BUFFER = 5; % Buffer value enforced between maxAmps and  before torque capped
+CURRENT_BUFFER = 50; % Buffer value enforced between maxAmps and  before torque capped
