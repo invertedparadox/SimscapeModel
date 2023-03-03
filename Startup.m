@@ -129,7 +129,8 @@ min_velocity_regen = 1.4; % m/s
 %% Vehicle Constants
 % Vehicle Body
 m_unsprung = [6 6 6 6] + ([8 8 8 8] .* MOTOR_ENABLE); % kg
-m_all = 300; % kg
+m_body = 300; % kg
+m_all = m_body + m_unsprung;
 
 %	Izz = 41782359388.78          Izx = 1218939069.69       Izy = -41283226162.43	
 %	Ixz = 1218939069.69            Ixx = 207923119475.86   Ixy = -323722590.99 
@@ -205,9 +206,11 @@ Rm = 0.079375; % m
 disk_abore = 0.0254; % m
 mu_kinetic = 0.4; % none 
 mu_static = 0.5; % none
-brake_bias = [0.75 0.75 0.25 0.25]; % percent
+brake_bias = [0.375 0.375 0.125 0.125]; % percent
 di2bp = 20; % MPa
 brakecoeff = [61.33 61.33 40.54 40.54]; % Nm/MPa
+
+P2T = (mu_kinetic*pi*(disk_abore^2)*Rm*num_pads)./(4);
 
 Fz = [0 204.13 427.04 668.1 895.72 1124.40 1324.40]; % tire normal force sample points (N)
 cy = [0 13757.41 21278.97 26666.02 30253.47 30313.18 30313.18]; % lateral tire stiffness (N/rad)
@@ -247,7 +250,7 @@ battery_FT_IC = 300; % K
 omega_IC = 0; % rad/s
 theta_IC = 0; % deg
 shock_length_IC = 0.1; % m
-Fz_IC = m_all*g/4; % N
+Fz_IC = m_body*g/4; % N
 
 % vehicle initial conditions
 BattCap_I = 16;
@@ -275,7 +278,8 @@ dIndex = 50;                % number of future track points
 forward_look_straight = 5;  % number of future track points considered if current or future is a straightaway
 forward_look_turn = 15;     % number of future track points considered if current and future is a turn
 q_thresh = 0.05;            % threshhold between quadrants in cartesian plane
-axb = -5;                   % m/s^2 Braking decceleration
+axb = -4;                   % m/s^2 Braking decceleration
+alpha_brake = 0.025;
 
 % indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
 indicies = [3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4];

@@ -9,6 +9,7 @@ Reference_Generator = out.Reference_Generator;
 Digital_Signals = out.Digital_Signals;
 time = Digital_Signals.Navigation_Sensors.gyro.Time;
 time_15 = TV_OUTPUT.ub.Time;
+Vehicle = out.Vehicle_Signals;
 
 %% Vehicle Dynamics
 yaw_rates = Reference_Signals.Chassis_AngularVelocity.Data(:,3);
@@ -22,7 +23,15 @@ Y_ref = Reference_Generator.y_ref.Data;
 
 omega = squeeze(Digital_Signals.Corner_Dynamics_Sensors.omega.Data)';
 Fz = Digital_Signals.Corner_Dynamics_Sensors.FZ.Data;
+%Fz = Vehicle.whl.TireFrame.Fz.Data;
+%Fx = Vehicle.whl.TireFrame.Fx.Data;
 steer = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
+
+%mu = Fx./Fz;
+
+%valid_mu = (mu < 2) & (mu > 0);
+
+%mu = mu(valid_mu);
 
 %% TVS
 flag = TV_OUTPUT.bigM_flag.Data;
