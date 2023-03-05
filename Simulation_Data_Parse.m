@@ -3,7 +3,7 @@
 
 %% Extract Bus Data
 TV_OUTPUT = out.TV_Output;
-MCPL_OUTPUT = out.MCPL_Output;
+% MCPL_OUTPUT = out.MCPL_Output;
 Reference_Signals = out.Navigation_Reference;
 Reference_Generator = out.Reference_Generator;
 Digital_Signals = out.Digital_Signals;
@@ -36,7 +36,7 @@ steer = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
 %% TVS
 flag = TV_OUTPUT.bigM_flag.Data;
 
-torque_out = squeeze(MCPL_OUTPUT.T.Data)';
+% torque_out = squeeze(MCPL_OUTPUT.T.Data)';
 ub_torque = TV_OUTPUT.ub.Data;
 lb_torque = TV_OUTPUT.lb.Data;
 
@@ -110,10 +110,10 @@ figure(2)
 
 % rear torque
 subplot(2,2,1)
-plot(time_15, torque_out(:,3))
-hold on
-plot(time_15, torque_out(:,4))
-hold on
+% plot(time_15, torque_out(:,3))
+% hold on
+% plot(time_15, torque_out(:,4))
+% hold on
 plot(time_15, lb_torque(:,3))
 hold on
 plot(time_15, lb_torque(:,4))
