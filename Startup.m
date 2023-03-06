@@ -66,7 +66,7 @@ power_state = 0; % bool
 max_K = 4095; % none
 
 deadband_angle = 12;
-P = 1;
+P = 2;
 I = 0;
 
 %% Signal Max/Min Clamping
@@ -103,19 +103,28 @@ FZ_MAX = 1200; % N
 FZ_MIN = 200; % N
 
 % tvs saturation
-ABS_MIN_TORQUE = [0 0 0 0]; % Nm
+ABS_MIN_TORQUE = [0.01 0.01 0.01 0.01]; % Nm
 ABS_MAX_TORQUE = [25 25 25 25]; % Nm
 ABS_MAX_TRQ_CMD = dot(ABS_MAX_TORQUE, MOTOR_ENABLE);
 ABS_MIN_TRQ_CMD = sum(MOTOR_ENABLE) * 0.5 * dTx;
 MAX_CURRENT = DCL_MAX; % A
 MIN_CURRENT = 0.1; % A
-MAX_DRIVER_INPUT = 1; % unitless
 MAX_MOTOR_CURRENT = 70; % A
 
 % subsystem design saturation
 TIRE_ANGLE_MAX = 0.5; % rad
 VELOCITY_MAX_XY = norm(VELOCITY_MAX.*[1 1]); % m/s
 REF_YAW_MAX = 1.25; % rad/s
+
+% driver saturation
+Max_Driver_Input = 1; % unitless
+Min_Driver_Input = 0; % unitless
+
+Max_Brake_Pressure = 10^8; % Pa
+Min_Brake_Pressure = 1; % Pa
+MAX_STEERING_ADJUST = 15; % deg
+MAX_DTHETA_DRIVER = 360; % deg/s
+MAX_DPEDAL_DRIVER = 4;
 
 %% True Constants
 deg2rad = 0.01745329; % multiply to convert from deg to rad (rad/deg)
@@ -207,7 +216,7 @@ Rm = 0.079375; % m
 disk_abore = 0.0254; % m
 mu_kinetic = 0.4; % none 
 mu_static = 0.5; % none
-brake_bias = [0.4 0.4, 0.1 0.1]; % percent
+brake_bias = [0.35 0.35, 0.15 0.15]; % percent
 P2T = (mu_kinetic*pi*(disk_abore^2)*Rm*num_pads)./(4);
 
 Fz = [0 204.13 427.04 668.1 895.72 1124.40 1324.40]; % tire normal force sample points (N)
@@ -269,6 +278,9 @@ state_IC = zeros(28,1);
 state_IC(1:4) = [1 0 0 0];       % orientation
 state_IC(23:25) = mag_field_IC; % magnetic field
 
+% driver initial conditions
+Brake_Pressure_IC = 1; % Pa
+
 %% Driver Model
 % Reference Generation
 dx = 0.1;                   % distance between 2 track points
@@ -276,7 +288,27 @@ dIndex = 50;                % number of future track points
 forward_look_straight = 5;  % number of future track points considered if current or future is a straightaway
 forward_look_turn = 15;     % number of future track points considered if current and future is a turn
 q_thresh = 0.3;             % threshhold between quadrants in cartesian plane
-axb = -6.25;                % m/s^2 Braking decceleration
+axb = -5;                   % m/s^2 Braking decceleration
+
+% ABS System
+IC = 0.15;
+lambda_star = 0.15;
+mu_star = 0.5;
+N = 4;
+lr = 35;
+omega_force = 0.7.*[1 0.9 0.8 0.7]; % Forcing frequency
+a = 1; % Demodulation amplitude
+b = 0.02; % Modulation amplitude
+phi_1 = pi/2; % Demodulation phase
+phi_2 = 0; % Modulation phase
+omega_lpf = 1;
+omega_hpf = 0.5;
+GAIN_ABS = 100;
+
+P_Driver = 0.7;
+I_Driver = 1;
+MAX_I_Driver = 1;
+P_Steering_Adjust = 5;
 
 % indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
 indicies = [3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4];
