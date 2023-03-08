@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'SFS'.
  *
- * Model version                  : 2.217
+ * Model version                  : 2.298
  * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
- * C/C++ source code generated on : Fri Mar  3 09:05:07 2023
+ * C/C++ source code generated on : Tue Mar  7 19:18:20 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -93,7 +93,7 @@ int_T main(int_T argc, const char *argv[])
   SFS_initialize(rtM);
 
   /* Attach rt_OneStep to a timer or interrupt service routine with
-   * period 0.005 seconds (base rate of the model) here.
+   * period 0.01 seconds (base rate of the model) here.
    * The call syntax for rt_OneStep is
    *
    *  rt_OneStep(rtM);

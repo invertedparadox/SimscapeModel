@@ -1,7 +1,3 @@
-%% Startup
-% clear
-% clc
-
 %% Load Table Data
 %sscfluids_ev_battery_cooling
 load("Simulation_Data_Input\PROCESSED_DATA\Track_Tables.mat")
@@ -14,7 +10,7 @@ load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Sensor_Tables.mat");
 
 %% Simulation Top Parameters
-YAW_ENABLE = 1;  % Disable yaw rate sweeping when set to 0
+YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
 TVS_ENABLE = 1;  % Enable TVS when set to 1
 TRACTION_ENABLE = 0; % Enable variable objective function coefficients
 MOTOR_ENABLE = [0 0 1 1]; % Enable motors (bool)
@@ -44,27 +40,24 @@ Cs = [0 0.01:0.01:0.3]; % none
 Cym = [0 1e-6:0.01:0.3]; % none
 cpm = .1; % none
 
-%% TVS MISC Parameters
-dB = 0.0001; % rad/s^2
+%% TVS Parameters
+% small delta parameters
+dB = 0.01; % rad/s^2
 dTx = 0.01; % Nm
 yaw_error_limit = 0.2; % rad/s^2
+low_V_SA = 0.001; % rad
+
+% static parameters
 Torque_Up_Rate_Limit = 125; % Nm/s
 Torque_Down_Rate_Limit = 300; % Nm/s
-low_V_SA = 0.001; % rad
 Vth = 2; % m/s
-ref_yaw_hysteresis = 0.1; % rad/s
-ref_yaw_state = 0; % bool
-ang_acc_drop_limit = 10; % rad/s^2
 ang_acc_hystersesis = 0.1; % rad/s^2
-TOY_correction_factor = 0.1; % increase/decrease in yaw rate to bring reference yaw rate closer to TOY (time optimal yaw rate)
 alpha_error = 0.1;
-
 torque_sat_const = 0.5;
 default_power_dist = [0.25, 0.25, 0.25, 0.25]; % percent
-battery_power_hysteresis = 500; % W
-power_state = 0; % bool
-max_K = 4095; % none
+min_velocity_regen = 1.4; % m/s
 
+% tunable parameters
 deadband_angle = 12;
 P = 2;
 I = 0;
@@ -134,7 +127,6 @@ g = 9.81; % m/s^2
 rho = 1.225; % kg/m^3
 Tair = 300; % K
 Pair = 101325; % Pa
-min_velocity_regen = 1.4; % m/s
 
 %% Vehicle Constants
 % Vehicle Body
@@ -143,8 +135,8 @@ m_body = 200; % kg
 m_all = m_body + sum(m_unsprung);
 
 %	Izz = 41782359388.78          Izx = 1218939069.69       Izy = -41283226162.43	
-%	Ixz = 1218939069.69            Ixx = 207923119475.86   Ixy = -323722590.99 
-% 	Iyz = -41283226162.43        Iyx = -323722590.9          Iyy = 209310186667.15
+%	Ixz = 1218939069.69           Ixx = 207923119475.86     Ixy = -323722590.99 
+% 	Iyz = -41283226162.43         Iyx = -323722590.9        Iyy = 209310186667.15
 
 Iveh = [41.78 1.22 -41.28; 1.22 207.92 -0.32; -41.28 -0.32 209.31]; % kg*m^2
 

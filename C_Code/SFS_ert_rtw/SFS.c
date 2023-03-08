@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'SFS'.
  *
- * Model version                  : 2.217
+ * Model version                  : 2.298
  * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
- * C/C++ source code generated on : Fri Mar  3 09:05:07 2023
+ * C/C++ source code generated on : Tue Mar  7 19:18:20 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -54,7 +54,6 @@ static void sind(real_T *x);
 static void lla2ecef(const real_T llaPos[3], real_T ecefPos[3]);
 static void AsyncMARGGPSFuserBase_fusegps(insfilterAsync *obj, const real_T lla
   [3], real_T Rpos, const real_T vel[3], real_T Rvel, DW_SFS *localDW);
-static void rate_scheduler(RT_MODEL *const rtM);
 static real_T rtGetNaN(void);
 static real32_T rtGetNaNF(void);
 
@@ -265,28 +264,6 @@ static real32_T rtGetMinusInfF(void)
   IEEESingle minfF;
   minfF.wordL.wordLuint = 0xFF800000U;
   return minfF.wordL.wordLreal;
-}
-
-/*
- *         This function updates active task flag for each subrate.
- *         The function is called at model base rate, hence the
- *         generated code self-manages all its subrates.
- */
-static void rate_scheduler(RT_MODEL *const rtM)
-{
-  /* Compute which subrates run during the next base time step.  Subrates
-   * are an integer multiple of the base rate counter.  Therefore, the subtask
-   * counter is reset when it reaches its limit (zero means run).
-   */
-  (rtM->Timing.TaskCounters.TID[1])++;
-  if ((rtM->Timing.TaskCounters.TID[1]) > 1) {/* Sample time: [0.01s, 0.0s] */
-    rtM->Timing.TaskCounters.TID[1] = 0;
-  }
-
-  (rtM->Timing.TaskCounters.TID[2])++;
-  if ((rtM->Timing.TaskCounters.TID[2]) > 2) {/* Sample time: [0.015s, 0.0s] */
-    rtM->Timing.TaskCounters.TID[2] = 0;
-  }
 }
 
 /* Function for MATLAB Function: '<S2>/SNED to VNED' */
@@ -1855,17 +1832,14 @@ static void SFS_d(const real_T rtu_sensor_raw[3], const real_T rtu_sensor_raw_p
 void SFS_step(RT_MODEL *const rtM, ExtU *rtU, ExtY *rtY)
 {
   DW *rtDW = rtM->dwork;
-  if (rtM->Timing.TaskCounters.TID[1] == 0) {
-    /* Outputs for Atomic SubSystem: '<Root>/SFS' */
-    SFS_d(rtU->acc, rtU->gyro, rtU->mag, rtU->vel, rtU->pos, rtY->angvel_VNED,
-          rtY->ang_NED, rtY->pos_VNED, rtY->vel_VNED, rtY->acc_VNED,
-          rtY->mag_VNED, rtY->acc_bias_VNED, rtY->gyro_bias_VNED,
-          rtY->mag_bias_VNED, &rtDW->SFS_ds);
 
-    /* End of Outputs for SubSystem: '<Root>/SFS' */
-  }
+  /* Outputs for Atomic SubSystem: '<Root>/SFS' */
+  SFS_d(rtU->acc, rtU->gyro, rtU->mag, rtU->vel, rtU->pos, rtY->angvel_VNED,
+        rtY->ang_NED, rtY->pos_VNED, rtY->vel_VNED, rtY->acc_VNED, rtY->mag_VNED,
+        rtY->acc_bias_VNED, rtY->gyro_bias_VNED, rtY->mag_bias_VNED,
+        &rtDW->SFS_ds);
 
-  rate_scheduler(rtM);
+  /* End of Outputs for SubSystem: '<Root>/SFS' */
 }
 
 /* Model initialize function */

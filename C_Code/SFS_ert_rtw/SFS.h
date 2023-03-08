@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'SFS'.
  *
- * Model version                  : 2.217
+ * Model version                  : 2.298
  * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
- * C/C++ source code generated on : Fri Mar  3 09:05:07 2023
+ * C/C++ source code generated on : Tue Mar  7 19:18:20 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -124,27 +124,11 @@ typedef struct {
 
 /* External inputs (root inport signals with default storage) */
 typedef struct {
-  real_T vel[3];                       /* '<Root>/vel' */
-  real_T pos[3];                       /* '<Root>/pos' */
-  real_T acc[3];                       /* '<Root>/acc' */
   real_T mag[3];                       /* '<Root>/mag' */
   real_T gyro[3];                      /* '<Root>/gyro' */
-  real_T GS;                           /* '<Root>/GS' */
-  real_T Course;                       /* '<Root>/Course' */
-  real_T battery_V;                    /* '<Root>/battery_V' */
-  real_T battery_I;                    /* '<Root>/battery_I' */
-  real_T motor_V[4];                   /* '<Root>/motor_V' */
-  real_T motor_I[4];                   /* '<Root>/motor_I' */
-  real_T pwr_lmt[2];                   /* '<Root>/pwr_lmt' */
-  real_T motor_T[4];                   /* '<Root>/motor_T' */
-  real_T mc_T[4];                      /* '<Root>/mc_T' */
-  real_T motor_FT[2];                  /* '<Root>/motor_FT' */
-  real_T batt_T;                       /* '<Root>/batt_T' */
-  real_T batt_FT;                      /* '<Root>/batt_FT' */
-  real_T omega[4];                     /* '<Root>/omega' */
-  real_T theta;                        /* '<Root>/theta' */
-  real_T shock_L[4];                   /* '<Root>/shock_L' */
-  real_T FZ[4];                        /* '<Root>/FZ' */
+  real_T acc[3];                       /* '<Root>/acc' */
+  real_T pos[3];                       /* '<Root>/pos' */
+  real_T vel[3];                       /* '<Root>/vel' */
 } ExtU;
 
 /* External outputs (root outports fed by signals with default storage) */
@@ -201,17 +185,6 @@ typedef struct P_ P;
 struct tag_RTM {
   const char_T * volatile errorStatus;
   DW *dwork;
-
-  /*
-   * Timing:
-   * The following substructure contains information regarding
-   * the timing information for the model.
-   */
-  struct {
-    struct {
-      uint8_T TID[3];
-    } TaskCounters;
-  } Timing;
 };
 
 /* Block parameters (default storage) */
