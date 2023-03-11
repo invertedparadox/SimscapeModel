@@ -8,7 +8,7 @@
 clearvars -except S1 S2 S3 S4 deg2rad l steer_slope MAX_V MIN_V dv d0 CENTER_STEER_ANGLE_MAX ALL_SWEEP_DATA TOY_correction_factor
 clc
 load("sweep_data.mat")
-load("PROCESSED_DATA\Sweep_Tables.mat");
+%load("PROCESSED_DATA\Sweep_Tables.mat");
 
 %% Simulation Conditions
 num1 = 392; % total number of data points collected, including buffer points
@@ -155,11 +155,6 @@ theta_avg = mean([theta_left; theta_right])' * ones(1, num2); % mean front tire 
 yaw_rate_TOY = velocity .* theta_avg ./ sum(l); % TOY (rad/s)
 TOY_error = yaw_rate_TOY - yaw_rate; % error between vehicle steady state yaw, and correspond TOY at the same PCoGV & CCSA
 
-% calculate minimum TOY adjustment for all PCoGV & CCSA between TOY_error, and nominal value (TOY_correction_factor)
-possible_corrections = [abs(TOY_error(:)) (TOY_correction_factor.*ones(num3*num2,1))]'; % 
-TOY_correction_table = sign(TOY_error(:)).*min(possible_corrections)';
-TOY_correction_table = reshape(TOY_correction_table, [num3, num2]);
-
 %% Minimum Turning Radius
 [max_yaw, idx_yaw] = max(yaw_rate);
 limit_velocity = velocity(1,:);
@@ -172,7 +167,7 @@ vehicle_e = power_OUT ./ power_IN; % vehicle overall power efficiency
 radius = velocity ./ yaw_rate; % vehicle turning radius as function of PCoGV & CCSA
 
 %% Cleaning up & Saving
-clearvars -except steering_sweep velocity_sweep yaw_rate_sweep yaw_rate TOY_correction_table steering_Up_Grid steering_Dn_Grid yaw_rate_gradient limit_velocity_coeffs
+clearvars -except steering_sweep velocity_sweep yaw_rate_sweep yaw_rate steering_Up_Grid steering_Dn_Grid yaw_rate_gradient limit_velocity_coeffs
 
 save("PROCESSED_DATA\Yaw_Tables.mat")
 

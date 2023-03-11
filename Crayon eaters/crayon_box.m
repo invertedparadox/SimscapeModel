@@ -1,9 +1,6 @@
-clear
-clc
 % Master File
 
 STEPS = 10;
-
 throttleX = 0:1/STEPS:1;
 throttleCurve = polyval([1 0], throttleX);
 
@@ -24,4 +21,4 @@ minMotorTemp = 75;
 motorTempX = minMotorTemp : (maxMotorTemp-minMotorTemp) / STEPS : maxMotorTemp;
 motorTempCurve = 140 -  (motorTempX - minMotorTemp) .^ 2 .* (140) / (maxMotorTemp - minMotorTemp)^2;
 
-CURRENT_BUFFER = 50; % Buffer value enforced between maxAmps and  before torque capped
+CURRENT_BUFFER = 25; % Buffer value enforced between maxAmps and  before torque capped

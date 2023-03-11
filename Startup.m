@@ -10,13 +10,15 @@ load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Sensor_Tables.mat");
 
 %% Simulation Top Parameters
-YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
-TVS_ENABLE = 1;  % Enable TVS when set to 1
+YAW_ENABLE = 0;  % Enable yaw rate sweeping when set to 0
+TVS_ENABLE = 0;  % Enable TVS when set to 1
 TRACTION_ENABLE = 0; % Enable variable objective function coefficients
 MOTOR_ENABLE = [0 0 1 1]; % Enable motors (bool)
 
-selected_track = ALL_TRACK_DATA.(event_names(11));
-selected_maxvm = MIN_TRACK_DATA.(event_names(11));
+aero_coeff = 2.75; % coefficient in front of v^2 [kg/m]
+
+selected_track = ALL_TRACK_DATA.(event_names(3));
+selected_maxvm = MIN_TRACK_DATA.(event_names(3));
 selected_sweep = ALL_SWEEP_DATA.(sweep_names(1));
 
 %% Simulation Sample Rates
@@ -42,7 +44,7 @@ cpm = .1; % none
 
 %% TVS Parameters
 % small delta parameters
-dB = 0.01; % rad/s^2
+dB = 0.001; % rad/s^2
 dTx = 0.01; % Nm
 yaw_error_limit = 0.2; % rad/s^2
 low_V_SA = 0.001; % rad
@@ -73,18 +75,20 @@ MAG_MAX = 200; % uT
 % power sensors
 BATTERY_VOLTAGE_MAX = 340; % V
 BATTERY_VOLTAGE_MIN = 60; % V
-BATTERY_CURRENT_MAX = 75; % A
+BATTERY_CURRENT_MAX = 140; % A
 BATTERY_CURRENT_MIN = 0; % A
 MOTOR_VOLTAGE_MAX = 340; % V
 MOTOR_VOLTAGE_MIN = 90; % V
+MOTOR_CURRENT_MAX = 70; % A
+MOTOR_CURRENT_MIN = 0; % A
 DCL_MAX = 140; % A
 DCL_MIN = 0; % A
 
 % temperature sensors
-MOTOR_TEMPERATURE_MAX = 373.15; % K
-MOTOR_TEMPERATURE_MIN = 0; % K
-BATTERY_TEMPERATURE_MAX = 400; % K
-BATTERY_TEMPERATURE_MIN = 0; % K
+MOTOR_TEMPERATURE_MAX = 100; % degC
+MOTOR_TEMPERATURE_MIN = 0; % degC
+BATTERY_TEMPERATURE_MAX = 60; % degC
+BATTERY_TEMPERATURE_MIN = 0; % degC
 
 % corner dynamics sensors
 CENTER_STEER_ANGLE_MAX = 130; % deg
@@ -102,7 +106,6 @@ ABS_MAX_TRQ_CMD = dot(ABS_MAX_TORQUE, MOTOR_ENABLE);
 ABS_MIN_TRQ_CMD = sum(MOTOR_ENABLE) * 0.5 * dTx;
 MAX_CURRENT = DCL_MAX; % A
 MIN_CURRENT = 0.1; % A
-MAX_MOTOR_CURRENT = 70; % A
 
 % subsystem design saturation
 TIRE_ANGLE_MAX = 0.5; % rad
@@ -131,12 +134,13 @@ Pair = 101325; % Pa
 %% Vehicle Constants
 % Vehicle Body
 m_unsprung = [6 6 6 6] + ([8 8 8 8] .* MOTOR_ENABLE); % kg
-m_body = 200; % kg
+m_driver = 80; % kg
+m_body = 180; % kg
 m_all = m_body + sum(m_unsprung);
 
 %	Izz = 41782359388.78          Izx = 1218939069.69       Izy = -41283226162.43	
 %	Ixz = 1218939069.69           Ixx = 207923119475.86     Ixy = -323722590.99 
-% 	Iyz = -41283226162.43         Iyx = -323722590.9        Iyy = 209310186667.15
+% 	Iyz = -41283226162.43         Iyx = -323722590.9          Iyy = 209310186667.15
 
 Iveh = [41.78 1.22 -41.28; 1.22 207.92 -0.32; -41.28 -0.32 209.31]; % kg*m^2
 
@@ -173,7 +177,7 @@ Ns = 80; % count
 Em = [2.8 3.375 3.65 3.9 4.15]; % V
 SOC = [0 0.25 0.5 0.75 1]; % none
 TEMPERATURE = [290 310]; % K
-RESISTANCE = ones(length(TEMPERATURE), length(SOC)) .* 0.03; % Ohms
+RESISTANCE = ones(length(TEMPERATURE), length(SOC)) .* 0.003; % Ohms
 
 area_air = 0.15; % m^2
 rad_air_vol = 0.01; % m^3

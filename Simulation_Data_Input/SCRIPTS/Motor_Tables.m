@@ -39,7 +39,7 @@ opts.VariableTypes = ["double", "double", "double", "double", "double", "double"
 
 for i = 1:1:num_datasets
     opts.Sheet = num2str(voltages(i)) + "V";
-    motor_data(:, :, i) = table2array(readtable("..\RAW_DATA\all_motor_data.xlsx", opts, "UseExcel", false));
+    motor_data(:, :, i) = table2array(readtable("RAW_DATA\all_motor_data.xlsx", opts, "UseExcel", false));
 
     all_voltage = [all_voltage; motor_data(:, 1, i)];
     all_current = [all_current; motor_data(:, 2, i)];
@@ -58,7 +58,7 @@ opts.VariableTypes = ["double"];
 
 for i = 1:1:num_datasets
     opts.Sheet = num2str(voltages(i)) + "V";
-    motor_constants(:,i) = table2array(readtable("..\RAW_DATA\all_motor_data.xlsx", opts, "UseExcel", false));
+    motor_constants(:,i) = table2array(readtable("RAW_DATA\all_motor_data.xlsx", opts, "UseExcel", false));
 end
 
 %% Prepare Data for Fitting
