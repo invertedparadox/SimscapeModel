@@ -434,7 +434,7 @@ subplot(2,2,4)
 %% Bulk Vehicle Dynamics Data
 figure(8)
 subplot(2,2,1)
-plot(time, rad2deg(Orientation_FUS))
+plot(time, rad2deg(Orientation_REF))
 
 xlabel("time (s)")
 ylabel("Orientation (deg) (NED)")

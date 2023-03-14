@@ -10,15 +10,15 @@ load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Sensor_Tables.mat");
 
 %% Simulation Top Parameters
-YAW_ENABLE = 0;  % Enable yaw rate sweeping when set to 0
+YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
 TVS_ENABLE = 0;  % Enable TVS when set to 1
 TRACTION_ENABLE = 0; % Enable variable objective function coefficients
 MOTOR_ENABLE = [0 0 1 1]; % Enable motors (bool)
 
-aero_coeff = 2.75; % coefficient in front of v^2 [kg/m]
+aero_coeff = 3; % coefficient in front of v^2 [kg/m]
 
-selected_track = ALL_TRACK_DATA.(event_names(3));
-selected_maxvm = MIN_TRACK_DATA.(event_names(3));
+selected_track = ALL_TRACK_DATA.(event_names(7));
+selected_maxvm = MIN_TRACK_DATA.(event_names(7));
 selected_sweep = ALL_SWEEP_DATA.(sweep_names(1));
 
 %% Simulation Sample Rates
@@ -81,7 +81,7 @@ MOTOR_VOLTAGE_MAX = 340; % V
 MOTOR_VOLTAGE_MIN = 90; % V
 MOTOR_CURRENT_MAX = 70; % A
 MOTOR_CURRENT_MIN = 0; % A
-DCL_MAX = 140; % A
+DCL_MAX = 130; % A
 DCL_MIN = 0; % A
 
 % temperature sensors
@@ -104,8 +104,6 @@ ABS_MIN_TORQUE = [0.01 0.01 0.01 0.01]; % Nm
 ABS_MAX_TORQUE = [25 25 25 25]; % Nm
 ABS_MAX_TRQ_CMD = dot(ABS_MAX_TORQUE, MOTOR_ENABLE);
 ABS_MIN_TRQ_CMD = sum(MOTOR_ENABLE) * 0.5 * dTx;
-MAX_CURRENT = DCL_MAX; % A
-MIN_CURRENT = 0.1; % A
 
 % subsystem design saturation
 TIRE_ANGLE_MAX = 0.5; % rad
@@ -120,7 +118,6 @@ Max_Brake_Pressure = 10^8; % Pa
 Min_Brake_Pressure = 1; % Pa
 MAX_STEERING_ADJUST = 15; % deg
 MAX_DTHETA_DRIVER = 360; % deg/s
-MAX_DPEDAL_DRIVER = 4;
 
 %% True Constants
 deg2rad = 0.01745329; % multiply to convert from deg to rad (rad/deg)
@@ -170,10 +167,10 @@ mcp_Motor = 573; % Specific Heat of Plettenberg Nova 15 motor (J/K)
 I_mot = 0.777559; % Polar mass moment of inertia for Plettenberg Nova 15 motor (kg/m^2)
 A_mot = 0.022925; % Cooling jacket surface area for Plettenberg Nova 15 motor (m^2)
 
-BattCap = 16; % Ah
 Battery_tau = 0.001; % s
-Np = 4; % count
-Ns = 80; % count
+Np = 5; % count
+Ns = 76; % count
+BattCap = Np*4; % Ah
 Em = [2.8 3.375 3.65 3.9 4.15]; % V
 SOC = [0 0.25 0.5 0.75 1]; % none
 TEMPERATURE = [290 310]; % K
@@ -189,7 +186,7 @@ F0z = [0 0]; % N preload per wheel
 Hmax = 0.05715 + 0.0225; % m
 AntiSwayR = 0.0635; % m
 AntiSwayNtrlAng = pi/4; % rad
-AntiSwayTrsK = 1218*10; % Nm/rad
+AntiSwayTrsK = 1218; % Nm/rad
 ActSuspDutyCycle = 1; % none
 
 steer_slope = 0.282; % CCSA to rack displacement slope (mm/deg)
@@ -236,9 +233,9 @@ ang_IC = 0; % rad
 ang_vel_IC = 0; % rad/s
 
 % power sensors
-battery_voltage_IC = 336; % V
+battery_voltage_IC = 332; % V
 battery_current_IC = 0; % A
-motor_voltage_IC = 336; % V
+motor_voltage_IC = 332; % V
 motor_current_IC = 0; % A
 dcl_IC = 140; % A
 ccl_IC = 0;
@@ -256,14 +253,14 @@ shock_length_IC = 0.1; % m
 Fz_IC = m_all*g/4; % N
 
 % vehicle initial conditions
-BattCap_I = 16;
+BattCap_I = Np*4;
 zdot_tires_IC = 0; % m/s
 z_tire_IC = 0; % m
 
 % tvs initial conditions
 Tx_I = 0; % Nm
 windup_I = 0; % bool
-motor_efficiency_IC = 0.31; % none
+% motor_efficiency_IC = 0.31; % none
 
 % sensor fusion initial conditions
 location_lla_IC = [40.437675, -86.943750, 680]; % [deg deg m]

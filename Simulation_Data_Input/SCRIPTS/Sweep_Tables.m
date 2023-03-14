@@ -6,7 +6,7 @@ clc;
 sweep_name = sweep_names(1); % sweep name
 
 MAX_V = 25; % maximum velocity used in simulation (m/s)
-MIN_V = 3; % minimum velocity used in simulation (m/s)
+MIN_V = 18; % minimum velocity used in simulation (m/s)
 dv = 1; % velocity increment used in simulation (m/s)
 d0 = 5; % center column steering angle (CCSA) increment used in simulation (deg)
 dt_ON = 7.5;  % time (s) that each data point is active

@@ -1,5 +1,5 @@
 %% Startup
-clearvars -except rpm2radps num_datasets voltages Tx_resolution RPM_resolution V_resolution MOTOR_VOLTAGE_MAX ABS_MAX_TORQUE MAX_MOTOR_CURRENT
+clearvars -except rpm2radps num_datasets voltages Tx_resolution RPM_resolution V_resolution MOTOR_VOLTAGE_MAX ABS_MAX_TORQUE MOTOR_CURRENT_MAX
 clc;
 
 %% Parameters
@@ -80,7 +80,7 @@ for i = 1:1:num_datasets
 
     syms RPM_FW
 
-    sol = solve(MAX_MOTOR_CURRENT == P(1)*RPM_FW^4 + P(2)*RPM_FW^3 + P(3)*RPM_FW^2 + P(4)*RPM_FW + P(5));
+    sol = solve(MOTOR_CURRENT_MAX == P(1)*RPM_FW^4 + P(2)*RPM_FW^3 + P(3)*RPM_FW^2 + P(4)*RPM_FW + P(5));
 
     if double(sol(1)) > 50
         RPM_Field_Weakening(i) = double(sol(1));
@@ -135,10 +135,10 @@ opts.Span = 0.15;
 I_grid = reshape(feval(fitresult,[rpm_grid(:),voltage_grid(:)]), [V_resolution RPM_resolution]);
 k = voltage_grid ./ max(max(voltage_grid));
 r = rpm_grid ./ RPM_FW_MAX_bkpt;
-NO_FW_ZONE = (I_grid > MAX_MOTOR_CURRENT);
+NO_FW_ZONE = (I_grid > MOTOR_CURRENT_MAX);
 %I_grid_no_FW = (((-k.*0.*rpm_grid ./ RPM_FW_MAX_bkpt) + (MAX_MOTOR_CURRENT .* rpm_grid ./ RPM_FW_MAX_bkpt)) + (k.*0)) .* (I_grid > MAX_MOTOR_CURRENT);
-%I_grid_no_FW = (MAX_MOTOR_CURRENT .* rpm_grid ./ RPM_FW_MAX_bkpt) .* (I_grid > MAX_MOTOR_CURRENT);
-I_grid_no_FW = MAX_MOTOR_CURRENT .* NO_FW_ZONE;
+%I_grid_no_FW = (MOTOR_CURRENT_MAX .* rpm_grid ./ RPM_FW_MAX_bkpt) .* (I_grid > MAX_MOTOR_CURRENT);
+I_grid_no_FW = MOTOR_CURRENT_MAX .* NO_FW_ZONE;
 I_grid_FW = max(0, ~NO_FW_ZONE .* I_grid);
 I_grid_NO_RPM = (I_grid_no_FW + I_grid_FW);
 
