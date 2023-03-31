@@ -26,7 +26,7 @@ low_V_SA = 0.001; % rad
 
 % static parameters
 Torque_Up_Rate_Limit = 125; % Nm/s
-Torque_Down_Rate_Limit = 300; % Nm/s
+Torque_Down_Rate_Limit = 30000; % Nm/s
 Vth = 2; % m/s
 ang_acc_hystersesis = 0.1; % rad/s^2
 alpha_error = 0.1;
@@ -39,6 +39,8 @@ deadband_angle = 12;
 P = 2;
 I = 0;
 CURRENT_BUFFER = 25; % Buffer value enforced between maxAmps and  before torque capped
+TVS_Intensity = 1;
+TVS_Intensity_Calibration = 1;
 
 % Power Control Laws
 STEPS = 10;

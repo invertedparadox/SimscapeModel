@@ -33,10 +33,11 @@ selected_maxvm = MIN_TRACK_DATA.(event_names(7)); % section track data
 selected_sweep = ALL_SWEEP_DATA.(sweep_names(1)); % driver control data
 
 %% Simulation Sample Rates
-t = 0.015; % torque vectoring step size (s)
+tvs_t = 0.015; % torque vectoring step size (s)
+tvs_t_sim = tvs_t; % duplicate for simulation
 driver_t = 0.015; % driver reaction time (s)
 fusion_t = 0.01; % sensor fusion sample period (s)
-fusion_t_sim = fusion_t; % duplicate for code generation
+fusion_t_sim = fusion_t; % duplicate simulation
 gps_hz = 0.01; % gps sample period (s)
 imu_hz = fusion_t; % imu sample period (s)
 gps_ratio = gps_hz / imu_hz; % ratio of gps sample period to imu sample period
