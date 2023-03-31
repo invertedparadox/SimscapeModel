@@ -18,7 +18,7 @@ sweep_names = ["ccw_steering"];
 PATH = "RAW_DATA/";
 
 % selected track to update or add
-track_name = event_names(3); % notepad file name
+track_name = event_names(10); % notepad file name
 
 %% Set up the Import Options and import the data
 opts = delimitedTextImportOptions("NumVariables", 3);

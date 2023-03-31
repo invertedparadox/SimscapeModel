@@ -3,7 +3,7 @@
 % Program Description 
 % This program calculates various lookup tables that are related to the
 % suspension of a formula style electric vehicle. In particular, the PER23
-% suspension
+% suspension. In addition, sets various suspension parameters
 %
 % Input Arguments
 % None
@@ -21,7 +21,25 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Startup
-clearvars -except CENTER_STEER_ANGLE_MAX deg2rad steer_slope S1 S2 S3 S4 s l
+clearvars -except CENTER_STEER_ANGLE_MAX s l
+
+%% Conversions
+lbin2kgm = 4.44822162/0.0254; % (N*in)/(lb*m)
+
+%% Scalar Prameters
+Kz = 250*lbin2kgm; % N/m spring constant per wheel
+F0z = [0 0]; % N preload per wheel
+Hmax = 0.05715 + 0.0225; % m
+AntiSwayR = 0.0635; % m
+AntiSwayNtrlAng = pi/4; % rad
+AntiSwayTrsK = 1218; % Nm/rad
+ActSuspDutyCycle = 1; % none
+
+steer_slope = 0.282; % CCSA to rack displacement slope (mm/deg)
+S1 = 7E-5; % rack displacement to tire angle x^3 coefficient (deg/mm^3)
+S2 = -0.0038; % rack displacement to tire angle x^2 coefficient (deg/mm^2)
+S3 = 0.6535; % rack displacement to tire angle x coefficient (deg/mm)
+S4 = 0.1061; % rack displacement to tire angle constant coefficient (deg)
 
 %% Import Data
 % import damper dyno data
@@ -60,10 +78,10 @@ theta_sweep = -CENTER_STEER_ANGLE_MAX:1:CENTER_STEER_ANGLE_MAX;
 x = theta_sweep.*steer_slope;
 
 % left tire angle (rad)
-theta_left = deg2rad.*((S1*x.^3) - (S2*x.^2) + (S3.*x) - S4);
+theta_left = deg2rad((S1*x.^3) - (S2*x.^2) + (S3.*x) - S4);
 
 % right tire angle (rad)
-theta_right = deg2rad.*((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4);
+theta_right = deg2rad((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4);
 
 % precomputation of Aeq
 theta_tires = [theta_left; theta_right];
@@ -77,7 +95,9 @@ Aeq_left = sum([s(1); l(1)] .* [left_tires(1,:); right_tires(1,:)]);
 Aeq_right = sum([-s(1); l(1)] .* [left_tires(2,:); right_tires(2,:)]);
 
 %% Cleanup & Saving
-clearvars -except f_act_susp_cz f_act_susp_zdot_bpt f_act_susp_duty_bpt theta_sweep theta_right theta_left Aeq_left Aeq_right
+clearvars -except f_act_susp_cz f_act_susp_zdot_bpt f_act_susp_duty_bpt ...
+    theta_sweep theta_right theta_left Aeq_left Aeq_right steer_slope S1 ...
+    S2 S3 S4 Kz F0z Hmax AntiSwayR AntiSwayNtrlAng AntiSwayTrsK ActSuspDutyCycle
 save("PROCESSED_DATA\Suspension_Tables.mat")
 
 %% Data Viewing

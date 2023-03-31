@@ -36,7 +36,6 @@ steer = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
 %% TVS
 flag = TV_OUTPUT.bigM_flag.Data;
 windup = TV_OUTPUT.windup.Data;
-reset = TV_OUTPUT.reset.Data;
 
 torque_out = squeeze(TV_OUTPUT.Tx.Data)';
 TxFL = torque_out(:,1);
@@ -48,7 +47,7 @@ ub_torque = TV_OUTPUT.ub.Data;
 lb_torque = TV_OUTPUT.lb.Data;
 
 ang_acc = TV_OUTPUT.beq.Data;
-pre_limit_ang_acc = out.pre_limit_ang_acc.Data;
+% pre_limit_ang_acc = out.pre_limit_ang_acc.Data;
 max_ang_acc = TV_OUTPUT.max_ang_acc.Data;
 min_ang_acc = TV_OUTPUT.min_ang_acc.Data;
 
@@ -182,18 +181,18 @@ ylabel("Torque (Nm)")
 legend("FL Torque","FR Torque","RL Torque","RR Torque")
 
 % control signal
-subplot(2,2,2)
-plot(time_15,ang_acc)
-hold on
-plot(time_15, pre_limit_ang_acc)
-hold on
-plot(time_15, max_ang_acc)
-hold on
-plot(time_15, min_ang_acc)
-
-xlabel("time (s)")
-ylabel("Angular Acceleration (rad/s^2)")
-legend("Actual","Pre Limit", "MAX", "MIN")
+% subplot(2,2,2)
+% plot(time_15,ang_acc)
+% hold on
+% plot(time_15, pre_limit_ang_acc)
+% hold on
+% plot(time_15, max_ang_acc)
+% hold on
+% plot(time_15, min_ang_acc)
+% 
+% xlabel("time (s)")
+% ylabel("Angular Acceleration (rad/s^2)")
+% legend("Actual","Pre Limit", "MAX", "MIN")
 
 % objective gain coefficients
 subplot(2,2,3)
@@ -413,12 +412,12 @@ ylabel("State")
 legend("Optimization Flag")
 
 % Yaw Controller Reset
-subplot(2,2,2)
-plot(time_15, reset)
-
-xlabel("time (s)")
-ylabel("State")
-legend("Integral Reset")
+% subplot(2,2,2)
+% plot(time_15, reset)
+% 
+% xlabel("time (s)")
+% ylabel("State")
+% legend("Integral Reset")
 
 % Yaw Controller Windup
 subplot(2,2,3)
