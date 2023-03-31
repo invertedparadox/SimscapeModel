@@ -23,14 +23,14 @@ load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
 %% Simulation Top Parameters
 YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
 TVS_ENABLE = 0;  % Enable TVS when set to 1
-TRACTION_ENABLE = 0; % Enable variable objective function coefficients
-MOTOR_ENABLE = [0 0 1 1]; % Enable motors (bool)
+TRACTION_ENABLE = 0; % Enable variable objective function coefficients when set to 1
+MOTOR_ENABLE = [0 0 1 1]; % Enable motors when set to 1
 
-aero_coeff = 3; % coefficient in front of v^2 [kg/m]
+aero_coeff = 3; % coefficient in front of v^2 [kg/m] (to be depreciated)
 
-selected_track = ALL_TRACK_DATA.(event_names(10));
-selected_maxvm = MIN_TRACK_DATA.(event_names(10));
-selected_sweep = ALL_SWEEP_DATA.(sweep_names(1));
+selected_track = ALL_TRACK_DATA.(event_names(7)); % xy track data
+selected_maxvm = MIN_TRACK_DATA.(event_names(7)); % section track data
+selected_sweep = ALL_SWEEP_DATA.(sweep_names(1)); % driver control data
 
 %% Simulation Sample Rates
 t = 0.015; % torque vectoring step size (s)
@@ -42,12 +42,14 @@ imu_hz = fusion_t; % imu sample period (s)
 gps_ratio = gps_hz / imu_hz; % ratio of gps sample period to imu sample period
 
 %% Simulation Strange Parameters
+% Tire unknown parameters
 LONGVL = 16.7; % m/s
 FNOMIN = 850; % N
 NOMPRES = 82737; % Pa
 VXLOW = 0.1; % m/s
 xdot_tol = 0.1; % m/s
 
+% Aerodynamics unknown parameters
 beta_w = [0 0.01:0.01:0.3]; % rad
 Cs = [0 0.01:0.01:0.3]; % none
 Cym = [0 1e-6:0.01:0.3]; % none
@@ -58,9 +60,9 @@ deg2rad = 0.01745329; % multiply to convert from deg to rad (rad/deg)
 rpm2radps = 0.104719755; % multipe to convert RPM to rad/s (rad/RPM*s)
 
 g = 9.81; % m/s^2
-rho = 1.225; % kg/m^3
-Tair = 300; % K
-Pair = 101325; % Pa
+rho = 1.225; % air density [kg/m^3]
+Tair = 300; % Ambient air temperature [K]
+Pair = 101325; % Ambient absolute pressure [Pa]
 
 %% Simulation Initial Conditions
 % navigation sensors
@@ -76,7 +78,7 @@ battery_current_IC = 0; % A
 motor_voltage_IC = 332; % V
 motor_current_IC = 0; % A
 dcl_IC = 140; % A
-ccl_IC = 0;
+ccl_IC = 0; % A
 
 % temperature sensors
 motor_T_IC = 300; % K
@@ -88,7 +90,7 @@ battery_FT_IC = 300; % K
 omega_IC = 0 ; % rad/s
 theta_IC = 0; % deg
 shock_length_IC = 0.1; % m
-Fz_IC = m_all*g/4; % N
+Fz_IC = m_all*g/4; % vehicle corner weight [N]
 
 % vehicle initial conditions
 BattCap_I = Np*4;
@@ -112,7 +114,7 @@ state_IC(23:25) = mag_field_IC; % magnetic field
 % driver initial conditions
 Brake_Pressure_IC = 1; % Pa
 
-%% Signal Max/Min Clamping
+%% Signal Ranges
 % navigation sensors
 VELOCITY_MAX = 30; % m/s
 YAW_MAX = 2.5; % rad/s
