@@ -18,8 +18,12 @@
 % Damper Lookup: Damper Force = f(shock velocity, duty cycle)
 % Front tire angles [FL FR] = f(CCSA)
 % 
-%
+%a
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Startup
+clearvars
+clc;
+
 %% Driver Model
 % Reference Generation
 dx = 0.1;                   % distance between 2 track points
@@ -47,7 +51,10 @@ GAIN_ABS = 100;
 P_Driver = 0.7;
 I_Driver = 1;
 MAX_I_Driver = 1;
-P_Steering_Adjust = 5;
+P_Steering_Adjust = 2;
+P_Straight_Adjust = 5;
+P_High_Speed = 0.1;
+High_Speed_Threshhold = 17.5; % m/s
 
 % indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
 indicies = [3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4];

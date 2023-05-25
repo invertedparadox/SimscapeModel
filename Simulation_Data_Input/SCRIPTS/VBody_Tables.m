@@ -27,8 +27,8 @@ clc;
 %% Vehicle Constants
 % Vehicle Body
 m_unsprung = [6 6 6 6] + ([8 8 8 8] .* MOTOR_ENABLE); % kg
-m_driver = 80; % kg
-m_body = 180; % kg
+m_driver = 70; % kg
+m_body = 160; % kg
 m_all = m_body + sum(m_unsprung);
 
 Iveh = [41.78 1.22 -41.28; 1.22 207.92 -0.32; -41.28 -0.32 209.31]; % kg*m^2
@@ -42,7 +42,9 @@ Af = 1.0221; % Frontal area of vehicle with respect to aerodynamics (m^2)
 Cd = 1.149; % Coefficient of drag (dimensionless)
 cl = 2.11014; % Coefficient of lift (dimensionless)
 
-phi = 45; % deg angle of firewall with resepct to horizontal
+phi = 45; % deg angle of firewall with resepect to horizontal
+IMUNED2VNED = rotmat(quaternion([0 (phi - 180) 0],"eulerd","XYZ","frame"),"frame");
+MAGNED2VNED = rotmat(quaternion([180 (180 - phi) 0],"eulerd","XYZ","frame"),"frame");
 
 %% Cleaning up & Saving
 save("PROCESSED_DATA\VBody_Tables.mat");

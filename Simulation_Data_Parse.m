@@ -12,7 +12,7 @@ throttle = out.Throttle.Data(:);
 
 %% Vehicle Dynamics
 yaw_rates = Reference_Signals.Chassis_AngularVelocity.Data(:,3);
-ref_yaw_rates = TV_OUTPUT.ref_yaw.Data;
+ref_yaw_rates = squeeze(TV_OUTPUT.ref_yaw.Data);
 steering_ss = Lookup_Steering.Data;
 
 X = Reference_Signals.Chassis_Position.X.Data(:);
@@ -107,8 +107,8 @@ Velocity_Z_REF = Reference_Signals.Chassis_Velocity_VNED.zdot.data(:,1);
 Velocity_REF = [Velocity_X_REF Velocity_Y_REF Velocity_Z_REF];
 Velocity_FUS = squeeze(Fused_Signals.vel_VNED.Data);
 
-vel_error = Velocity_REF - Velocity_FUS;
-vel_norm_error = vecnorm(vel_error');
+% vel_error = Velocity_REF - Velocity_FUS;
+% vel_norm_error = vecnorm(vel_error');
 
 Velocity_PCoG = vecnorm([Velocity_X_REF,Velocity_Y_REF]');
 
@@ -387,14 +387,14 @@ ylabel("Angular Rate (rad/s)")
 legend("X", "Y", "Z", "Mag")
 
 % velocity error
-subplot(2,2,4)
-plot(time, vel_error(:,1))
-hold on
-plot(time, vel_error(:,2))
-hold on
-plot(time, vel_error(:,3))
-hold on
-plot(time, vel_norm_error)
+% subplot(2,2,4)
+% plot(time, vel_error(:,1))
+% hold on
+% plot(time, vel_error(:,2))
+% hold on
+% plot(time, vel_error(:,3))
+% hold on
+% plot(time, vel_norm_error)
 
 xlabel("time (s)")
 ylabel("Velocity (m/s)")

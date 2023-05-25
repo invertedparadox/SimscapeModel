@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'TVS'.
  *
- * Model version                  : 1.142
- * Simulink Coder version         : 9.7 (R2022a) 13-Nov-2021
- * C/C++ source code generated on : Mon Jan  2 13:45:38 2023
+ * Model version                  : 2.417
+ * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
+ * C/C++ source code generated on : Fri Mar 31 15:56:05 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M

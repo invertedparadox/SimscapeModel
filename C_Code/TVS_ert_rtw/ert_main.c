@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'TVS'.
  *
- * Model version                  : 1.142
- * Simulink Coder version         : 9.7 (R2022a) 13-Nov-2021
- * C/C++ source code generated on : Mon Jan  2 13:45:38 2023
+ * Model version                  : 2.417
+ * Simulink Coder version         : 9.8 (R2022b) 13-May-2022
+ * C/C++ source code generated on : Fri Mar 31 15:56:05 2023
  *
  * Target selection: ert.tlc
  * Embedded hardware selection: ARM Compatible->ARM Cortex-M
@@ -23,6 +23,12 @@
 #include <stdio.h>            /* This example main program uses printf/fflush */
 #include "TVS.h"                       /* Model header file */
 
+static RT_MODEL rtM_;
+static RT_MODEL *const rtMPtr = &rtM_; /* Real-time model */
+static DW rtDW;                        /* Observable states */
+static ExtU rtU;                       /* External inputs */
+static ExtY rtY;                       /* External outputs */
+
 /*
  * Associating rt_OneStep with a real-time clock or interrupt service routine
  * is what makes the generated code "real-time".  The function rt_OneStep is
@@ -34,8 +40,8 @@
  * your application needs.  This example simply sets an error status in the
  * real-time model and returns from rt_OneStep.
  */
-void rt_OneStep(void);
-void rt_OneStep(void)
+void rt_OneStep(RT_MODEL *const rtM);
+void rt_OneStep(RT_MODEL *const rtM)
 {
   static boolean_T OverrunFlag = false;
 
@@ -54,7 +60,7 @@ void rt_OneStep(void)
   /* Set model inputs here */
 
   /* Step the model */
-  TVS_step();
+  TVS_step(rtM, &rtU, &rtY);
 
   /* Get model outputs here */
 
@@ -74,18 +80,23 @@ void rt_OneStep(void)
  */
 int_T main(int_T argc, const char *argv[])
 {
+  RT_MODEL *const rtM = rtMPtr;
+
   /* Unused arguments */
   (void)(argc);
   (void)(argv);
 
+  /* Pack model data into RTM */
+  rtM->dwork = &rtDW;
+
   /* Initialize model */
-  TVS_initialize();
+  TVS_initialize(rtM);
 
   /* Attach rt_OneStep to a timer or interrupt service routine with
-   * period 0.015 seconds (base rate of the model) here.
+   * period 0.005 seconds (base rate of the model) here.
    * The call syntax for rt_OneStep is
    *
-   *  rt_OneStep();
+   *  rt_OneStep(rtM);
    */
   printf("Warning: The simulation will run forever. "
          "Generated ERT main won't simulate model step behavior. "

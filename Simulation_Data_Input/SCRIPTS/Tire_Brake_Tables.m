@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% PER 2023
+% PER 2023 NOTE: Update tire parameters with data from web
 % Program Description 
 % This program calculates various lookup tables that are related to the
 % suspension of a formula style electric vehicle. In particular, the PER23
@@ -73,7 +73,7 @@ clearvars -except Fz_sweep kx_sweep cy_sweep mx_sweep my_sweep Fz cy ...
     IYY VERTICAL_DAMPING num_pads Rm disk_abore mu_kinetic mu_static ... 
     brake_bias P2T
 
-save("PROCESSED_DATA\Tire_Tables.mat");
+save("PROCESSED_DATA\Tire_Brake_Tables.mat");
 
 %% Data Viewing
 % scatter(Fz_sweep, kx_sweep)

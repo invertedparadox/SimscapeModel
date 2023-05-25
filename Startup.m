@@ -28,19 +28,25 @@ MOTOR_ENABLE = [0 0 1 1]; % Enable motors when set to 1
 
 aero_coeff = 3; % coefficient in front of v^2 [kg/m] (to be depreciated)
 
-selected_track = ALL_TRACK_DATA.(event_names(7)); % xy track data
-selected_maxvm = MIN_TRACK_DATA.(event_names(7)); % section track data
+selected_track = ALL_TRACK_DATA.(event_names(10)); % xy track data
+selected_maxvm = MIN_TRACK_DATA.(event_names(10)); % section track data
 selected_sweep = ALL_SWEEP_DATA.(sweep_names(1)); % driver control data
 
 %% Simulation Sample Rates
 tvs_t = 0.015; % torque vectoring step size (s)
 tvs_t_sim = tvs_t; % duplicate for simulation
 driver_t = 0.015; % driver reaction time (s)
-fusion_t = 0.01; % sensor fusion sample period (s)
-fusion_t_sim = fusion_t; % duplicate simulation
+
+fusion_t = Simulink.Parameter(0.01); % sensor fusion sample period (s)
+fusion_t.Max = 0.05;
+fusion_t.Min = 0.005;
+
+fusion_t_sim = fusion_t.copy; % duplicate simulation
 gps_hz = 0.01; % gps sample period (s)
-imu_hz = fusion_t; % imu sample period (s)
-gps_ratio = gps_hz / imu_hz; % ratio of gps sample period to imu sample period
+imu_hz = fusion_t.copy; % imu sample period (s)
+gps_ratio = Simulink.Parameter(gps_hz / imu_hz.Value); % ratio of gps sample period to imu sample period
+gps_ratio.Max = 5;
+gps_ratio.Min = 1;
 
 %% Simulation Strange Parameters
 % Tire unknown parameters
@@ -74,7 +80,7 @@ ang_IC = 0; % rad
 ang_vel_IC = 0; % rad/s
 
 % power sensors
-battery_voltage_IC = 332; % V
+battery_voltage_IC = Ns*max(Em); % V
 battery_current_IC = 0; % A
 motor_voltage_IC = 332; % V
 motor_current_IC = 0; % A
@@ -104,13 +110,30 @@ windup_I = 0; % bool
 % motor_efficiency_IC = 0.31; % none
 
 % sensor fusion initial conditions
-location_lla_IC = [40.437675, -86.943750, 680]; % [deg deg m]
+location_lla_IC = Simulink.Parameter([40.437675, -86.943750, 200]); % [deg deg m]
+location_lla_IC.Max = 1000;
+location_lla_IC.Min = -180;
+
 mag_field_IC = [19.78899, -1.607, 48.9449]; % NED magnetic field uT
-gps_counter_IC = 0;
-covarience_matrix_IC = eye(28)./1000;
+
+gps_counter_IC = Simulink.Parameter(0);
+gps_counter_IC.Max = gps_ratio.Value;
+gps_counter_IC.Min = 0;
+
+covarience_matrix_IC = Simulink.Parameter(eye(28)./1000);
+covarience_matrix_IC.Max = 10;
+covarience_matrix_IC.Min = -10;
 state_IC = zeros(28,1);
 state_IC(1:4) = [1 0 0 0];       % orientation
 state_IC(23:25) = mag_field_IC; % magnetic field
+
+% covarience_matrix_IC = Simulink.Parameter(eye(22)./1000);
+% covarience_matrix_IC.Max = 10;
+% covarience_matrix_IC.Min = -10;
+% state_IC = zeros(22,1);
+% state_IC(1:4) = [1 0 0 0];       % orientation
+% state_IC(17:19) = mag_field_IC; % magnetic field
+
 
 % driver initial conditions
 Brake_Pressure_IC = 1; % Pa
@@ -122,6 +145,7 @@ YAW_MAX = 2.5; % rad/s
 ACCELERATION_MAX = 30; % m/s^2
 ORIENTATION_MAX = 360; % deg
 MAG_MAX = 200; % uT
+POS_MAX = 300; % m
 
 % power sensors
 BATTERY_VOLTAGE_MAX = 340; % V
@@ -131,6 +155,7 @@ BATTERY_CURRENT_MIN = 0; % A
 MOTOR_VOLTAGE_MAX = 340; % V
 MOTOR_VOLTAGE_MIN = 90; % V
 MOTOR_CURRENT_MAX = 70; % A
+MOTOR_CURRENT_LIMIT = 55; % A
 MOTOR_CURRENT_MIN = 0; % A
 DCL_MAX = 130; % A
 DCL_MIN = 0; % A
