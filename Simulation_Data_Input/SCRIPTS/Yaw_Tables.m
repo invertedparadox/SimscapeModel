@@ -5,14 +5,14 @@
 
 %% Startup
 % Run startup.m before running this file, ensure sweep_data.mat is up to date)
-% clearvars -except S1 S2 S3 S4 deg2rad l steer_slope MAX_V MIN_V dv d0 CENTER_STEER_ANGLE_MAX ALL_SWEEP_DATA TOY_correction_factor
+clearvars -except S1 S2 S3 S4 deg2rad l steer_slope MAX_V MIN_V dv d0 CENTER_STEER_ANGLE_MAX ALL_SWEEP_DATA TOY_correction_factor
 % clc
 % load("sweep_data.mat")
 % load("PROCESSED_DATA\Sweep_Tables.mat");
-% load("Yaw_Tables.mat")
+load("Yaw_Tables.mat")
 
 %% Simulation Conditions
-num1 = 419; % total number of data points collected, including buffer points
+num1 = 671; % total number of data points collected, including buffer points
 steering = ALL_SWEEP_DATA.ccw_steering(1:num1,2); % ordered CCSA setpoints used in simulation (deg)
 Digital_Signals = out.Digital_Signals;
 TV_Output = out.TV_Output;
@@ -20,7 +20,7 @@ Driver_signals = out.Driver_Signals;
 Reference_Signals = out.Navigation_Reference;
 
 %% Lookup Table Breakpoints (sweep steering angle at set velocity, increase velocity, repeat)
-velocity_sweep = MIN_V:dv:MAX_V-8; % PCoGV sweep used in simulation
+velocity_sweep = MIN_V:dv:MAX_V; % PCoGV sweep used in simulation
 steering_sweep = 0:d0:CENTER_STEER_ANGLE_MAX; % CCSA sweep used in simulation
 yaw_rate_sweep = 0:0.05:2; % vehicle body yaw rate (rad/s)
 num2 = length(velocity_sweep);
@@ -35,7 +35,6 @@ torque = ones(1, num1);    % measured tvs torque request in simulation order
 power_OUT = ones(1, num1); % measured vehicle output power in simulation order
 power_IN = ones(1, num1);  % measured vehicle input power in simulation order
 velocity = ones(1, num1);  % measured vehicle PCoGV in simulation order
-current = ones(1, num1);   % measure battery current in simulation order
 
 %% Extract Raw Data
 % rear right TVS Torque request (Nm)
@@ -66,18 +65,16 @@ velocities = sqrt(xdot.^2 + ydot.^2);      % vehicle PCoGV (m/s)
 for i = 1:num1
     if (mod(i, num3+1) == 1)
         yaw_rate(i) = 0;
-        torque(i) = torques(end_positions(i));
+        %torque(i) = torques(end_positions(i));
         velocity(i) = velocities(end_positions(i));
-        power_OUT(i) = torque(i) * omega_mean(end_positions(i));
-        power_IN(i) = battery_I(end_positions(i)) * battery_V(end_positions(i));
-        current(i) = battery_I(end_positions(i));
+        %power_OUT(i) = torque(i) * omega_mean(end_positions(i));
+        %power_IN(i) = battery_I(end_positions(i)) * battery_V(end_positions(i));
     elseif (mod(i, num3+1) > 1)
-        yaw_rate(i) = yaw_rates(end_positions(i)-4);
-        torque(i) = torques(end_positions(i));
+        yaw_rate(i) = yaw_rates(end_positions(i)-10);
+        %torque(i) = torques(end_positions(i));
         velocity(i) = velocities(end_positions(i));
-        power_OUT(i) = torque(i) * omega_mean(end_positions(i));
-        power_IN(i) = battery_I(end_positions(i)) * battery_V(end_positions(i));
-        current(i) = battery_I(end_positions(i));
+        %power_OUT(i) = torque(i) * omega_mean(end_positions(i));
+        %power_IN(i) = battery_I(end_positions(i)) * battery_V(end_positions(i));
     else
         velocity(i) = 1;
         steering(i) = 1;
@@ -91,16 +88,14 @@ steering = steering(find(steering~=1));
 torque = torque(find(torque~=1));
 power_OUT = power_OUT(find(power_OUT~=1));
 power_IN = power_IN(find(power_IN~=1));
-current = current(find(current~=1));
 
 %% Reshape Data (to conform with 2D lookup table convention)
-yaw_rate = reshape(yaw_rate, [num3 num2]);
-velocity = reshape(velocity, [num3 num2]);
-steering = reshape(steering, [num3 num2]);
-torque = reshape(torque, [num3 num2]);
-power_OUT = reshape(power_OUT, [num3 num2]);
-power_IN = reshape(power_IN, [num3 num2]);
-current = reshape(current, [num3 num2]);
+% yaw_rate = reshape(yaw_rate, [num3 num2]);
+% velocity = reshape(velocity, [num3 num2]);
+% steering = reshape(steering, [num3 num2]);
+% torque = reshape(torque, [num3 num2]);
+% power_OUT = reshape(power_OUT, [num3 num2]);
+% power_IN = reshape(power_IN, [num3 num2]);
 
 %% Yaw Rate Gradient
 yaw_rate_gradient = ones(num3, num2);
@@ -142,16 +137,6 @@ ft = fittype('loess');
 
 steering_Up_Grid = reshape(feval(fitresult,[yaw_rate_grid(:),velocity_grid(:)]), [num4, num2]);
 
-F = scatteredInterpolant(yData,yData./(xData+0.001),zData);
-Vq = F(velocity_sweep,ones(1, num2).*7.5);
-
-valid_indicies = Vq <= 130;
-
-velocity_75_valid = velocity_sweep(valid_indicies);
-yaw_rate_75_all = velocity_sweep./(ones(1, num2).*7.5);
-yaw_rate_75_valid = yaw_rate_75_all(valid_indicies);
-steering_75_valid = Vq(valid_indicies);
-
 % fitting understeering data
 [xData, yData, zData] = prepareSurfaceData(yaw_rate_Dn, velocity_Dn, steering_Dn);
 ft = fittype('loess');
@@ -190,10 +175,9 @@ save("PROCESSED_DATA\Yaw_Tables.mat")
 % scatter3(velocity(:), steering(:), yaw_rate_TOY(:))
 % scatter3(velocity(:), steering(:), TOY_error(:))
 % scatter3(velocity(:), steering(:), TOY_correction_table(:))
-% scatter3(velocity_75_valid, steering_75_valid, yaw_rate_75_valid);
-% 
+
 % xlabel("Velocity (m/s)")
-% ylabel("Steering Angle (deg)")
+% ylabel("Steeting Angle (deg)")
 % zlabel("Yaw Rate (rad/s)")
 
 % xlabel("Planar CoG Velocity (m/s)")
@@ -217,11 +201,3 @@ save("PROCESSED_DATA\Yaw_Tables.mat")
 % scatter3(velocity_grid(:), yaw_rate_grid(:), steering_Dn_Grid(:))
 % scatter3(velocity_grid(:), yaw_rate_grid(:), steering_Up_Grid(:))
 % scatter3(velocity_Up(:), steering_Up_Grid(:), yaw_rate_Up(:))
-
-% scatter(min(velocity), min(power_IN))
-% xlabel("Planar CoG Velocity (m/s)")
-% ylabel("Power In (W)")
-
-% scatter(min(velocity), min(current))
-% xlabel("Planar CoG Velocity (m/s)")
-% ylabel("Battery Current (A)")

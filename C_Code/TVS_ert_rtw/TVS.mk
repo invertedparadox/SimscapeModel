@@ -2,8 +2,8 @@
 ## Makefile generated for component 'TVS'. 
 ## 
 ## Makefile     : TVS.mk
-## Generated on : Fri Mar 31 15:56:10 2023
-## Final product: $(RELATIVE_PATH_TO_ANCHOR)/TVS.elf
+## Generated on : Mon Jan 02 13:45:50 2023
+## Final product: $(RELATIVE_PATH_TO_ANCHOR)/TVS.exe
 ## Product type : executable
 ## 
 ###########################################################################
@@ -20,10 +20,10 @@
 
 PRODUCT_NAME              = TVS
 MAKEFILE                  = TVS.mk
-MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2022b
-MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2022b/bin
+MATLAB_ROOT               = C:/PROGRA~1/MATLAB/R2022a
+MATLAB_BIN                = C:/PROGRA~1/MATLAB/R2022a/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/win64
-START_DIR                 = C:/Users/Inver/Documents/GitHub/SimscapeModel
+START_DIR                 = C:/Users/Inver/MATLAB Drive/Top Model - Master
 SOLVER                    = 
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
@@ -32,87 +32,69 @@ MODEL_HAS_DYNAMICALLY_LOADED_SFCNS = 0
 RELATIVE_PATH_TO_ANCHOR   = ..
 COMPILER_COMMAND_FILE     = TVS_comp.rsp
 CMD_FILE                  = TVS.rsp
-C_STANDARD_OPTS           = 
-CPP_STANDARD_OPTS         = 
+C_STANDARD_OPTS           = -fwrapv
+CPP_STANDARD_OPTS         = -fwrapv
 
 ###########################################################################
 ## TOOLCHAIN SPECIFICATIONS
 ###########################################################################
 
-# Toolchain Name:          GNU Tools for ARM Embedded Processors
-# Supported Version(s):    
-# ToolchainInfo Version:   2022b
+# Toolchain Name:          MinGW64 | gmake (64-bit Windows)
+# Supported Version(s):    6.x
+# ToolchainInfo Version:   2022a
 # Specification Revision:  1.0
 # 
 #-------------------------------------------
 # Macros assumed to be defined elsewhere
 #-------------------------------------------
 
-# TARGET_LOAD_CMD_ARGS
-# TARGET_LOAD_CMD
-# MW_GNU_ARM_TOOLS_PATH
-# FDATASECTIONS_FLG
+# C_STANDARD_OPTS
+# CPP_STANDARD_OPTS
+# MINGW_ROOT
+# MINGW_C_STANDARD_OPTS
 
 #-----------
 # MACROS
 #-----------
 
-LIBGCC                    = ${shell $(MW_GNU_ARM_TOOLS_PATH)/arm-none-eabi-gcc ${CFLAGS} -print-libgcc-file-name}
-LIBC                      = ${shell $(MW_GNU_ARM_TOOLS_PATH)/arm-none-eabi-gcc ${CFLAGS} -print-file-name=libc.a}
-LIBM                      = ${shell $(MW_GNU_ARM_TOOLS_PATH)/arm-none-eabi-gcc ${CFLAGS} -print-file-name=libm.a}
-PRODUCT_NAME_WITHOUT_EXTN = $(basename $(PRODUCT))
-PRODUCT_BIN               = $(PRODUCT_NAME_WITHOUT_EXTN).bin
-PRODUCT_HEX               = $(PRODUCT_NAME_WITHOUT_EXTN).hex
-CPFLAGS                   = -O binary
-SHELL                     = %SystemRoot%/system32/cmd.exe
+WARN_FLAGS            = -Wall -W -Wwrite-strings -Winline -Wstrict-prototypes -Wnested-externs -Wpointer-arith -Wcast-align
+WARN_FLAGS_MAX        = $(WARN_FLAGS) -Wcast-qual -Wshadow
+CPP_WARN_FLAGS        = -Wall -W -Wwrite-strings -Winline -Wpointer-arith -Wcast-align
+CPP_WARN_FLAGS_MAX    = $(CPP_WARN_FLAGS) -Wcast-qual -Wshadow
+MW_EXTERNLIB_DIR      = $(MATLAB_ROOT)/extern/lib/win64/mingw64
+SHELL                 = %SystemRoot%/system32/cmd.exe
 
 TOOLCHAIN_SRCS = 
 TOOLCHAIN_INCS = 
-TOOLCHAIN_LIBS = -lm
+TOOLCHAIN_LIBS = -lws2_32
 
 #------------------------
 # BUILD TOOL COMMANDS
 #------------------------
 
-# Assembler: GNU ARM Assembler
-AS_PATH = $(MW_GNU_ARM_TOOLS_PATH)
-AS = "$(AS_PATH)/arm-none-eabi-gcc"
+# C Compiler: GNU C Compiler
+CC_PATH = $(MINGW_ROOT)
+CC = "$(CC_PATH)/gcc"
 
-# C Compiler: GNU ARM C Compiler
-CC_PATH = $(MW_GNU_ARM_TOOLS_PATH)
-CC = "$(CC_PATH)/arm-none-eabi-gcc"
+# Linker: GNU Linker
+LD_PATH = $(MINGW_ROOT)
+LD = "$(LD_PATH)/g++"
 
-# Linker: GNU ARM Linker
-LD_PATH = $(MW_GNU_ARM_TOOLS_PATH)
-LD = "$(LD_PATH)/arm-none-eabi-g++"
+# C++ Compiler: GNU C++ Compiler
+CPP_PATH = $(MINGW_ROOT)
+CPP = "$(CPP_PATH)/g++"
 
-# C++ Compiler: GNU ARM C++ Compiler
-CPP_PATH = $(MW_GNU_ARM_TOOLS_PATH)
-CPP = "$(CPP_PATH)/arm-none-eabi-g++"
+# C++ Linker: GNU C++ Linker
+CPP_LD_PATH = $(MINGW_ROOT)
+CPP_LD = "$(CPP_LD_PATH)/g++"
 
-# C++ Linker: GNU ARM C++ Linker
-CPP_LD_PATH = $(MW_GNU_ARM_TOOLS_PATH)
-CPP_LD = "$(CPP_LD_PATH)/arm-none-eabi-g++"
-
-# Archiver: GNU ARM Archiver
-AR_PATH = $(MW_GNU_ARM_TOOLS_PATH)
-AR = "$(AR_PATH)/arm-none-eabi-ar"
+# Archiver: GNU Archiver
+AR_PATH = $(MINGW_ROOT)
+AR = "$(AR_PATH)/ar"
 
 # MEX Tool: MEX Tool
 MEX_PATH = $(MATLAB_ARCH_BIN)
 MEX = "$(MEX_PATH)/mex"
-
-# Binary Converter: Binary Converter
-OBJCOPYPATH = $(MW_GNU_ARM_TOOLS_PATH)
-OBJCOPY = "$(OBJCOPYPATH)/arm-none-eabi-objcopy"
-
-# Hex Converter: Hex Converter
-OBJCOPYPATH = $(MW_GNU_ARM_TOOLS_PATH)
-OBJCOPY = "$(OBJCOPYPATH)/arm-none-eabi-objcopy"
-
-# Executable Size: Executable Size
-EXESIZEPATH = $(MW_GNU_ARM_TOOLS_PATH)
-EXESIZE = "$(EXESIZEPATH)/arm-none-eabi-size"
 
 # Download: Download
 DOWNLOAD =
@@ -121,7 +103,7 @@ DOWNLOAD =
 EXECUTE = $(PRODUCT)
 
 # Builder: GMAKE Utility
-MAKE_PATH = %MATLAB%\bin\win64
+MAKE_PATH = %MATLAB%/bin/win64
 MAKE = "$(MAKE_PATH)/gmake"
 
 
@@ -129,8 +111,6 @@ MAKE = "$(MAKE_PATH)/gmake"
 # Directives/Utilities
 #-------------------------
 
-ASDEBUG             = -g
-AS_OUTPUT_FLAG      = -o
 CDEBUG              = -g
 C_OUTPUT_FLAG       = -o
 LDDEBUG             = -g
@@ -142,7 +122,7 @@ OUTPUT_FLAG         = -o
 ARDEBUG             =
 STATICLIB_OUTPUT_FLAG =
 MEX_DEBUG           = -g
-RM                  = @del /f/q
+RM                  = @del
 ECHO                = @echo
 MV                  = @move
 RUN                 =
@@ -152,42 +132,23 @@ RUN                 =
 #----------------------------------------
 
 ARFLAGS              = ruvs
-ASFLAGS              = -MMD -MP -MF"$(@:%.o=%.dep)" -MT"$@"  \
-                       -Wall \
-                       -x assembler-with-cpp \
-                       $(ASFLAGS_ADDITIONAL) \
-                       $(DEFINES) \
-                       $(INCLUDES) \
-                       -c
-OBJCOPYFLAGS_BIN     = -O binary $(PRODUCT) $(PRODUCT_BIN)
-CFLAGS               = $(FDATASECTIONS_FLG) \
-                       -Wall \
-                       -MMD -MP -MF"$(@:%.o=%.dep)" -MT"$@"  \
-                       -c \
+CFLAGS               = -c $(MINGW_C_STANDARD_OPTS) -m64 \
                        -O0
-CPPFLAGS             = -std=gnu++14 \
-                       -fno-rtti \
-                       -fno-exceptions \
-                       $(FDATASECTIONS_FLG) \
-                       -Wall \
-                       -MMD -MP -MF"$(@:%.o=%.dep)" -MT"$@"  \
-                       -c \
+CPPFLAGS             = -c $(CPP_STANDARD_OPTS) -m64 \
                        -O0
-CPP_LDFLAGS          = -Wl,--gc-sections \
-                       -Wl,-Map="$(PRODUCT_NAME).map"
-CPP_SHAREDLIB_LDFLAGS  =
+CPP_LDFLAGS          =  -static -m64
+CPP_SHAREDLIB_LDFLAGS  = -shared -Wl,--no-undefined \
+                         -Wl,--out-implib,$(notdir $(basename $(PRODUCT))).lib
 DOWNLOAD_FLAGS       =
-EXESIZE_FLAGS        = $(PRODUCT)
 EXECUTE_FLAGS        =
-OBJCOPYFLAGS_HEX     = -O ihex $(PRODUCT) $(PRODUCT_HEX)
-LDFLAGS              = -Wl,--gc-sections \
-                       -Wl,-Map="$(PRODUCT_NAME).map"
+LDFLAGS              =  -static -m64
 MEX_CPPFLAGS         =
 MEX_CPPLDFLAGS       =
 MEX_CFLAGS           =
 MEX_LDFLAGS          =
 MAKE_FLAGS           = -f $(MAKEFILE)
-SHAREDLIB_LDFLAGS    =
+SHAREDLIB_LDFLAGS    = -shared -Wl,--no-undefined \
+                       -Wl,--out-implib,$(notdir $(basename $(PRODUCT))).lib
 
 
 
@@ -195,7 +156,7 @@ SHAREDLIB_LDFLAGS    =
 ## OUTPUT INFO
 ###########################################################################
 
-PRODUCT = $(RELATIVE_PATH_TO_ANCHOR)/TVS.elf
+PRODUCT = $(RELATIVE_PATH_TO_ANCHOR)/TVS.exe
 PRODUCT_TYPE = "executable"
 BUILD_TYPE = "Top-Level Standalone Executable"
 
@@ -211,10 +172,10 @@ INCLUDES = $(INCLUDES_BUILDINFO)
 ## DEFINES
 ###########################################################################
 
-DEFINES_BUILD_ARGS = -DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=0 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=1 -DINTEGER_CODE=0 -DMT=0
+DEFINES_BUILD_ARGS = -DCLASSIC_INTERFACE=0 -DALLOCATIONFCN=0 -DTERMFCN=0 -DONESTEPFCN=1 -DMAT_FILE=0 -DMULTI_INSTANCE_CODE=0 -DINTEGER_CODE=0 -DMT=0
 DEFINES_CUSTOM = 
 DEFINES_OPTS = -DTID01EQ=0
-DEFINES_STANDARD = -DMODEL=TVS -DNUMST=3 -DNCSTATES=0 -DHAVESTDIO -DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0
+DEFINES_STANDARD = -DMODEL=TVS -DNUMST=1 -DNCSTATES=0 -DHAVESTDIO -DMODEL_HAS_DYNAMICALLY_LOADED_SFCNS=0
 
 DEFINES = $(DEFINES_BUILD_ARGS) $(DEFINES_CUSTOM) $(DEFINES_OPTS) $(DEFINES_STANDARD)
 
@@ -232,9 +193,9 @@ ALL_SRCS = $(SRCS) $(MAIN_SRC)
 ## OBJECTS
 ###########################################################################
 
-OBJS = TVS.o TVS_data.o
+OBJS = TVS.obj TVS_data.obj
 
-MAIN_OBJ = ert_main.o
+MAIN_OBJ = ert_main.obj
 
 ALL_OBJS = $(OBJS) $(MAIN_OBJ)
 
@@ -297,29 +258,17 @@ MEX_CFLAGS += $(MEX_Compiler_BASIC)
 ###########################################################################
 
 
-ALL_DEPS:=$(patsubst %.o,%.dep,$(ALL_OBJS))
-all:
-
-ifndef DISABLE_GCC_FUNCTION_DATA_SECTIONS
-FDATASECTIONS_FLG := -ffunction-sections -fdata-sections
-endif
-
-
-
--include codertarget_assembly_flags.mk
--include ../codertarget_assembly_flags.mk
--include ../../codertarget_assembly_flags.mk
--include $(ALL_DEPS)
+MINGW_C_STANDARD_OPTS = $(C_STANDARD_OPTS)
 
 
 ###########################################################################
 ## PHONY TARGETS
 ###########################################################################
 
-.PHONY : all build buildobj clean info prebuild postbuild download execute
+.PHONY : all build buildobj clean info prebuild download execute
 
 
-all : build postbuild
+all : build
 	@echo "### Successfully generated all binary outputs."
 
 
@@ -333,19 +282,7 @@ buildobj : prebuild $(OBJS) $(PREBUILT_OBJS)
 prebuild : 
 
 
-postbuild : $(PRODUCT)
-	@echo "### Invoking postbuild tool "Binary Converter" ..."
-	$(OBJCOPY) $(OBJCOPYFLAGS_BIN)
-	@echo "### Done invoking postbuild tool."
-	@echo "### Invoking postbuild tool "Hex Converter" ..."
-	$(OBJCOPY) $(OBJCOPYFLAGS_HEX)
-	@echo "### Done invoking postbuild tool."
-	@echo "### Invoking postbuild tool "Executable Size" ..."
-	$(EXESIZE) $(EXESIZE_FLAGS)
-	@echo "### Done invoking postbuild tool."
-
-
-download : postbuild
+download : $(PRODUCT)
 
 
 execute : download
@@ -364,7 +301,7 @@ execute : download
 
 $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS) $(MAIN_OBJ)
 	@echo "### Creating standalone executable "$(PRODUCT)" ..."
-	$(CPP_LD) $(CPP_LDFLAGS) -o $(PRODUCT) @$(CMD_FILE) $(SYSTEM_LIBS) $(TOOLCHAIN_LIBS)
+	$(LD) $(LDFLAGS) -o $(PRODUCT) @$(CMD_FILE) $(SYSTEM_LIBS) $(TOOLCHAIN_LIBS)
 	@echo "### Created: $(PRODUCT)"
 
 
@@ -376,183 +313,63 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS) $(MAIN_OBJ)
 # SOURCE-TO-OBJECT
 #---------------------
 
-%.o : %.c
+%.obj : %.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-%.o : %.s
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : %.S
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : %.cpp
+%.obj : %.cpp
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : %.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : %.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : %.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.c
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.s
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.S
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.cpp
+%.obj : $(RELATIVE_PATH_TO_ANCHOR)/%.cpp
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/%.c
+%.obj : $(START_DIR)/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-%.o : $(START_DIR)/%.s
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/%.S
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/%.cpp
+%.obj : $(START_DIR)/%.cpp
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : $(START_DIR)/%.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/%.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/%.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/TVS_ert_rtw/%.c
+%.obj : $(START_DIR)/TVS_ert_rtw/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-%.o : $(START_DIR)/TVS_ert_rtw/%.s
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/TVS_ert_rtw/%.S
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/TVS_ert_rtw/%.cpp
+%.obj : $(START_DIR)/TVS_ert_rtw/%.cpp
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : $(START_DIR)/TVS_ert_rtw/%.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/TVS_ert_rtw/%.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(START_DIR)/TVS_ert_rtw/%.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/rtw/c/src/%.c
+%.obj : $(MATLAB_ROOT)/rtw/c/src/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-%.o : $(MATLAB_ROOT)/rtw/c/src/%.s
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/rtw/c/src/%.S
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/rtw/c/src/%.cpp
+%.obj : $(MATLAB_ROOT)/rtw/c/src/%.cpp
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : $(MATLAB_ROOT)/rtw/c/src/%.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/rtw/c/src/%.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/rtw/c/src/%.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/simulink/src/%.c
+%.obj : $(MATLAB_ROOT)/simulink/src/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-%.o : $(MATLAB_ROOT)/simulink/src/%.s
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/simulink/src/%.S
-	$(AS) $(ASFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/simulink/src/%.cpp
+%.obj : $(MATLAB_ROOT)/simulink/src/%.cpp
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : $(MATLAB_ROOT)/simulink/src/%.cc
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/simulink/src/%.C
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-%.o : $(MATLAB_ROOT)/simulink/src/%.cxx
-	$(CPP) $(CPPFLAGS) -o "$@" "$<"
-
-
-TVS.o : $(START_DIR)/TVS_ert_rtw/TVS.c
+TVS.obj : $(START_DIR)/TVS_ert_rtw/TVS.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-TVS_data.o : $(START_DIR)/TVS_ert_rtw/TVS_data.c
+TVS_data.obj : $(START_DIR)/TVS_ert_rtw/TVS_data.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-ert_main.o : $(START_DIR)/TVS_ert_rtw/ert_main.c
+ert_main.obj : $(START_DIR)/TVS_ert_rtw/ert_main.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
@@ -579,7 +396,6 @@ info :
 	@echo "### MODELREF_LIBS = $(MODELREF_LIBS)"
 	@echo "### SYSTEM_LIBS = $(SYSTEM_LIBS)"
 	@echo "### TOOLCHAIN_LIBS = $(TOOLCHAIN_LIBS)"
-	@echo "### ASFLAGS = $(ASFLAGS)"
 	@echo "### CFLAGS = $(CFLAGS)"
 	@echo "### LDFLAGS = $(LDFLAGS)"
 	@echo "### SHAREDLIB_LDFLAGS = $(SHAREDLIB_LDFLAGS)"
@@ -591,9 +407,6 @@ info :
 	@echo "### MEX_CPPFLAGS = $(MEX_CPPFLAGS)"
 	@echo "### MEX_LDFLAGS = $(MEX_LDFLAGS)"
 	@echo "### MEX_CPPLDFLAGS = $(MEX_CPPLDFLAGS)"
-	@echo "### OBJCOPYFLAGS_BIN = $(OBJCOPYFLAGS_BIN)"
-	@echo "### OBJCOPYFLAGS_HEX = $(OBJCOPYFLAGS_HEX)"
-	@echo "### EXESIZE_FLAGS = $(EXESIZE_FLAGS)"
 	@echo "### DOWNLOAD_FLAGS = $(DOWNLOAD_FLAGS)"
 	@echo "### EXECUTE_FLAGS = $(EXECUTE_FLAGS)"
 	@echo "### MAKE_FLAGS = $(MAKE_FLAGS)"
@@ -603,7 +416,6 @@ clean :
 	$(ECHO) "### Deleting all derived files..."
 	$(RM) $(subst /,\,$(PRODUCT))
 	$(RM) $(subst /,\,$(ALL_OBJS))
-	$(RM) *.dep
 	$(ECHO) "### Deleted all derived files."
 
 

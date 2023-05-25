@@ -1379,18 +1379,13 @@ static void SFS_d(const real_T rtu_sensor_raw[3], const real_T rtu_sensor_raw_p
     0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 
-  int16_T time_start;
-  static volatile int16_T time_stop;
-
   /* MATLAB Function: '<S2>/SNED to VNED' */
   n = (rtP.phi - 180.0) * 0.017453292519943295 / 2.0;
   IMUNED2VNED_tmp = cos(n);
   q = sin(n);
-  time_start = sched.os_ticks;
   quaternionBase_rotmat(IMUNED2VNED_tmp - 0.0 * q * 0.0, IMUNED2VNED_tmp * 0.0 +
                         sin(n) * 0.0, q - cos(n) * 0.0 * 0.0, cos(n) * 0.0 + 0.0
                         * sin(n), IMUNED2VNED);
-  time_stop = sched.os_ticks - time_start;
   n = (180.0 - rtP.phi) * 0.017453292519943295 / 2.0;
 
   /* MATLAB Function: '<S2>/fusion' incorporates:

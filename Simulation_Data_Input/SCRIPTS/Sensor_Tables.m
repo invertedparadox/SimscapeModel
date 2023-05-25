@@ -66,25 +66,11 @@ r_IMU = randi([0 100]);
 % covP = 1;
 % covV = 0.0464;
 
-covA = Simulink.Parameter(4.0095);
-covA.Max = 5;
-covA.Min = 0.001;
-
-covG = Simulink.Parameter(0.018);
-covG.Max = 5;
-covG.Min = 0.001;
-
-covM = Simulink.Parameter(0.99);
-covM.Max = 5;
-covM.Min = 0.001;
-
-covP = Simulink.Parameter(1);
-covP.Max = 5;
-covP.Min = 0.001;
-
-covV = Simulink.Parameter(0.1747);
-covV.Max = 5;
-covV.Min = 0.001;
+covA = 4.0095;
+covG = 0.018;
+covM = 0.99;
+covP = 1;
+covV = 0.1747;
 
 %% Filter Noise Parameters
 QuaternionNoise = [1e-06 1e-06 1e-06 1e-06];     % none
@@ -107,8 +93,6 @@ noise_state(17:19) = GyroscopeBiasNoise;
 noise_state(20:22) = AccelerometerBiasNoise;
 noise_state(23:25) = GeomagneticVectorNoise;
 noise_state(26:28) = MagnetometerBiasNoise;
-
-gyro_LP = 0.1;
 
 %% Cleanup & Saving
 save("PROCESSED_DATA\Sensor_Tables.mat")

@@ -17,10 +17,6 @@
 % Front tire angles [FL FR] = f(CCSA)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Startup
-clearvars
-clc;
-
 %% TVS Parameters
 % small delta parameters
 dB = 0.001; % rad/s^2

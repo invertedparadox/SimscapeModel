@@ -1,4 +1,4 @@
-#include "simplex.h"
+#include "bigM_v2_func.h"
 
 static const double epsilon   = 1.0e-8;
 int equal(double a, double b) { return fabs(a-b) < epsilon; }

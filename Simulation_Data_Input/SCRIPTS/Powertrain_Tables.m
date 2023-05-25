@@ -20,10 +20,6 @@
 % 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Startup
-clearvars
-clc;
-
 %% Powertrain
 Sun_gear_teeth_count = 27; % number of teeth on PER23 sun gear
 Ring_gear_teeth_count = 111; % number of teeth on PER23 ring gear
@@ -45,13 +41,11 @@ BattCap = Np*4; % Ah
 Em = [2.8 3.375 3.65 3.9 4.15]; % V
 SOC = [0 0.25 0.5 0.75 1]; % none
 TEMPERATURE = [290 310]; % K
-RESISTANCE = ones(length(TEMPERATURE), length(SOC)) .* 0.016; % Ohms
+RESISTANCE = ones(length(TEMPERATURE), length(SOC)) .* 0.003; % Ohms
 
 area_air = 0.15; % m^2
 rad_air_vol = 0.01; % m^3
 rad_liq_vol = 0.000157; % m^3
-
-current_limit_bias = 100; % rad/s
 
 %% Cleaning up & Saving
 save("PROCESSED_DATA\Powertrain_Tables.mat");
