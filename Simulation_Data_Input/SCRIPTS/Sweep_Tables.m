@@ -1,5 +1,5 @@
 %% Startup
-clearvars -except sweep_names MAX_V MIN_V dv d0 CENTER_STEER_ANGLE_MAX
+clearvars -except sweep_names MAX_V MIN_V dv d0 CENTER_STEER_ANGLE_MAX driver
 clc;
 
 %% Parameters
@@ -9,8 +9,8 @@ MAX_V = 25; % maximum velocity used in simulation (m/s)
 MIN_V = 18; % minimum velocity used in simulation (m/s)
 dv = 1; % velocity increment used in simulation (m/s)
 d0 = 5; % center column steering angle (CCSA) increment used in simulation (deg)
-dt_ON = 7.5;  % time (s) that each data point is active
-dt_OFF = 4.5; % time (s) between different velocities for vehicle recovery
+dt_ON = driver.control.dt_ON;  % time (s) that each data point is active
+dt_OFF = driver.control.dt_OFF; % time (s) between different velocities for vehicle recovery
 
 %% Initialize Variables
 velocity_sweep = MIN_V:dv:MAX_V;
@@ -41,9 +41,9 @@ ALL_SWEEP_DATA.(sweep_name) = [velocity' steering_angle'];
 sim_time = (dt_ON*num1*num2) + (dt_OFF*num1);
 
 %% Cleanup & Saving
-clearvars -except ALL_SWEEP_DATA MAX_V MIN_V dv d0 dt_ON dt_OFF
+clearvars -except ALL_SWEEP_DATA
 
-save("PROCESSED_DATA\Sweep_Tables.mat")
+save("PROCESSED_DATA\Sweep_Tables.mat", "ALL_SWEEP_DATA")
 
 %% Data Viewing
 % scatter(velocity(:), steering_angle(:))

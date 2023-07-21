@@ -1,0 +1,6 @@
+%implements s56_b0_wd3vh_ModuleConstants "C"
+
+%function ModuleConstants(block) Output
+
+#define car_model_period (0.01)
+%endfunction

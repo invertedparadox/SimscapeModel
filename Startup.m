@@ -1,171 +1,170 @@
+%% Startup
+clearvars -except out;
+clc;
+
 %% Load Table Data
-% Human-Vehicle Control 
-load("Simulation_Data_Input\PROCESSED_DATA\Track_Tables.mat")
-load("Simulation_Data_Input\PROCESSED_DATA\Sweep_Tables.mat")
+% Driver Systems 
+load("Simulation_Data_Input\PROCESSED_DATA\Track_Tables.mat");
+load("Simulation_Data_Input\PROCESSED_DATA\Sweep_Tables.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Driver_Tables.mat");
 
-% Vehicle Information
-load("Simulation_Data_Input\PROCESSED_DATA\Tire_Brake_Tables.mat");
+% Vehicle Systems
 load("Simulation_Data_Input\PROCESSED_DATA\Suspension_Tables.mat");
-load("Simulation_Data_Input\PROCESSED_DATA\VBody_Tables.mat");
+load("Simulation_Data_Input\PROCESSED_DATA\Chassis_Tables.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Powertrain_Tables.mat");
-load("Simulation_Data_Input\PROCESSED_DATA\Motor_Tables.mat");
 %sscfluids_ev_battery_cooling
 
 % Control Systems
-load("Simulation_Data_Input\PROCESSED_DATA\Yaw_Tables.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\TVS_Tables.mat");
 load("Simulation_Data_Input\PROCESSED_DATA\Sensor_Tables.mat");
 
-% Misc
-load("Simulation_Data_Input\PROCESSED_DATA\VehFeedback.mat");
-
 %% Simulation Top Parameters
-YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
-TVS_ENABLE = 0;  % Enable TVS when set to 1
-TRACTION_ENABLE = 0; % Enable variable objective function coefficients when set to 1
-MOTOR_ENABLE = [0 0 1 1]; % Enable motors when set to 1
+sim.top_parameters.YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
+sim.top_parameters.TVS_ENABLE = 0;  % Enable TVS when set to 1
+sim.top_parameters.TRACTION_ENABLE = 0; % Enable variable objective function coefficients when set to 1
+sim.top_parameters.MOTOR_ENABLE = [1 1 1 1]; % Enable motors when set to 1
 
-aero_coeff = 3; % coefficient in front of v^2 [kg/m] (to be depreciated)
-
-selected_track = ALL_TRACK_DATA.(event_names(7)); % xy track data
-selected_maxvm = MIN_TRACK_DATA.(event_names(7)); % section track data
-selected_sweep = ALL_SWEEP_DATA.(sweep_names(1)); % driver control data
+sim.top_parameters.selected_track = ALL_TRACK_DATA.(event_names(10)); % xy track data
+sim.top_parameters.selected_maxvm = MIN_TRACK_DATA.(event_names(10)); % section track data
+sim.top_parameters.selected_sweep = ALL_SWEEP_DATA.(sweep_names(1)); % driver control data  
 
 %% Simulation Sample Rates
-tvs_t = 0.015; % torque vectoring step size (s)
-tvs_t_sim = tvs_t; % duplicate for simulation
-driver_t = 0.015; % driver reaction time (s)
-fusion_t = 0.01; % sensor fusion sample period (s)
-fusion_t_sim = fusion_t; % duplicate simulation
-gps_hz = 0.01; % gps sample period (s)
-imu_hz = fusion_t; % imu sample period (s)
-gps_ratio = gps_hz / imu_hz; % ratio of gps sample period to imu sample period
+sim.timing.control_timing = 0.01; % s
+sim.timing.duplicate = sim.timing.control_timing; % duplicate simulation
+sim.timing.gps_hz = sim.timing.control_timing; % gps sample period (s)
+sim.timing.imu_hz = sim.timing.control_timing; % imu sample period (s)
+
+sim.timing.gps_ratio = sim.timing.gps_hz  / sim.timing.imu_hz; % ratio of gps sample period to imu sample period
 
 %% Simulation Strange Parameters
 % Tire unknown parameters
-LONGVL = 16.7; % m/s
-FNOMIN = 850; % N
-NOMPRES = 82737; % Pa
-VXLOW = 0.1; % m/s
-xdot_tol = 0.1; % m/s
+sim.strange_parameters.LONGVL = 16.7; % m/s
+sim.strange_parameters.FNOMIN = 850; % N
+sim.strange_parameters.NOMPRES = 82737; % Pa
+sim.strange_parameters.VXLOW = 0.1; % m/s
+sim.strange_parameters.xdot_tol = 0.1; % m/s
 
 % Aerodynamics unknown parameters
-beta_w = [0 0.01:0.01:0.3]; % rad
-Cs = [0 0.01:0.01:0.3]; % none
-Cym = [0 1e-6:0.01:0.3]; % none
-cpm = .1; % none
+sim.strange_parameters.beta_w = [0 0.01:0.01:0.3]; % rad
+sim.strange_parameters.Cs = [0 0.01:0.01:0.3]; % none
+sim.strange_parameters.Cym = [0 1e-6:0.01:0.3]; % none
+sim.strange_parameters.cpm = .1; % none
 
 %% Simulation Constants
-deg2rad = 0.01745329; % multiply to convert from deg to rad (rad/deg)
-rpm2radps = 0.104719755; % multipe to convert RPM to rad/s (rad/RPM*s)
+sim.constant.deg2rad = 0.01745329; % multiply to convert from deg to rad (rad/deg)
+sim.constant.rpm2radps = 0.104719755; % multipe to convert RPM to rad/s (rad/RPM*s)
 
-g = 9.81; % m/s^2
-rho = 1.225; % air density [kg/m^3]
-Tair = 300; % Ambient air temperature [K]
-Pair = 101325; % Ambient absolute pressure [Pa]
+sim.constant.g = 9.81; % m/s^2
+sim.constant.rho = 1.225; % air density [kg/m^3]
+sim.constant.Tair = 300; % Ambient air temperature [K]
+sim.constant.Pair = 101325; % Ambient absolute pressure [Pa]
 
 %% Simulation Initial Conditions
+% battery
+sim.IC.SOC_IC = 1;
+
+% thermal system
+sim.IC.motor_T_IC = 300; % K
+sim.IC.motor_FT_IC = 300; % K
+sim.IC.battery_T_IC = 300; % K
+sim.IC.battery_FT_IC = 300; % K
+sim.IC.motor_heat_loss_IC = 0; % W
+
 % navigation sensors
-vel_IC = [0 0 0]; % m/s
-pos_IC = 0; % m
-acc_IC = 0; % m/s^2
-ang_IC = 0; % rad
-ang_vel_IC = 0; % rad/s
+sim.IC.vel_IC = [0 0 0]; % m/s
+sim.IC.pos_IC = 0; % m
+sim.IC.acc_IC = 0; % m/s^2
+sim.IC.ang_IC = 0; % rad
+sim.IC.ang_vel_IC = 0; % rad/s
 
 % power sensors
-battery_voltage_IC = 332; % V
-battery_current_IC = 0; % A
-motor_voltage_IC = 332; % V
-motor_current_IC = 0; % A
-dcl_IC = 140; % A
-ccl_IC = 0; % A
-
-% temperature sensors
-motor_T_IC = 300; % K
-motor_FT_IC = 300; % K
-battery_T_IC = 300; % K
-battery_FT_IC = 300; % K
+sim.IC.battery_voltage_IC = 332; % V
+sim.IC.battery_current_IC = 0; % A
+sim.IC.motor_voltage_IC = 332; % V
+sim.IC.motor_current_IC = 0; % A
+sim.IC.dcl_IC = 140; % A
+sim.IC.ccl_IC = 0; % A
 
 % corner dynamics sensors
-omega_IC = 0 ; % rad/s
-theta_IC = 0; % deg
-shock_length_IC = 0.1; % m
-Fz_IC = m_all*g/4; % vehicle corner weight [N]
+sim.IC.omega_IC = 0 ; % rad/s
+sim.IC.theta_IC = 0; % deg
+sim.IC.shock_length_IC = 0.1; % m
+sim.IC.Fz_IC = chassis.mass.m_all*sim.constant.g/4; % vehicle corner weight [N]
 
 % vehicle initial conditions
-BattCap_I = Np*4;
-zdot_tires_IC = 0; % m/s
-z_tire_IC = 0; % m
-
-% tvs initial conditions
-Tx_I = 0; % Nm
-windup_I = 0; % bool
-% motor_efficiency_IC = 0.31; % none
+sim.IC.zdot_tires_IC = 0; % m/s
+sim.IC.z_tire_IC = 0; % m
 
 % sensor fusion initial conditions
-location_lla_IC = [40.437675, -86.943750, 680]; % [deg deg m]
-mag_field_IC = [19.78899, -1.607, 48.9449]; % NED magnetic field uT
-gps_counter_IC = 0;
-covarience_matrix_IC = eye(28)./1000;
-state_IC = zeros(28,1);
-state_IC(1:4) = [1 0 0 0];       % orientation
-state_IC(23:25) = mag_field_IC; % magnetic field
+sim.IC.location_lla_IC = [40.437675, -86.943750, 680]; % [deg deg m]
+sim.IC.mag_field_IC = [19.78899, -1.607, 48.9449]; % NED magnetic field uT
+sim.IC.gps_counter_IC = 0;
+sim.IC.covarience_matrix_IC = eye(28)./1000;
+sim.IC.state_IC = zeros(28,1);
+sim.IC.state_IC(1:4) = [1 0 0 0];       % orientation
+sim.IC.state_IC(23:25) = sim.IC.mag_field_IC; % magnetic field
 
 % driver initial conditions
-Brake_Pressure_IC = 1; % Pa
+sim.IC.Brake_Pressure_IC = 1; % Pa
+sim.IC.driver_input_IC = 1;
 
 %% Signal Ranges
 % navigation sensors
-VELOCITY_MAX = 30; % m/s
-YAW_MAX = 2.5; % rad/s
-ACCELERATION_MAX = 30; % m/s^2
-ORIENTATION_MAX = 360; % deg
-MAG_MAX = 200; % uT
+sim.range.VELOCITY_MAX = 30; % m/s
+sim.range.YAW_MAX = 2.5; % rad/s
+sim.range.ACCELERATION_MAX = 30; % m/s^2
+sim.range.ORIENTATION_MAX = 360; % deg
+sim.range.MAG_MAX = 200; % uT
 
-% power sensors
-BATTERY_VOLTAGE_MAX = 340; % V
-BATTERY_VOLTAGE_MIN = 60; % V
-BATTERY_CURRENT_MAX = 140; % A
-BATTERY_CURRENT_MIN = 0; % A
-MOTOR_VOLTAGE_MAX = 340; % V
-MOTOR_VOLTAGE_MIN = 90; % V
-MOTOR_CURRENT_MAX = 70; % A
-MOTOR_CURRENT_MIN = 0; % A
-DCL_MAX = 130; % A
-DCL_MIN = 0; % A
+% battery
+sim.range.BATTERY_VOLTAGE_MAX = 340; % V
+sim.range.BATTERY_VOLTAGE_MIN = 60; % V
+sim.range.BATTERY_CURRENT_MAX = 140; % A
+sim.range.BATTERY_CURRENT_MIN = 0; % A
+sim.range.BATTERY_TEMPERATURE_MAX = 60; % degC
+sim.range.BATTERY_TEMPERATURE_MIN = 0; % degC
 
-% temperature sensors
-MOTOR_TEMPERATURE_MAX = 100; % degC
-MOTOR_TEMPERATURE_MIN = 0; % degC
-BATTERY_TEMPERATURE_MAX = 60; % degC
-BATTERY_TEMPERATURE_MIN = 0; % degC
+sim.range.DCL_MAX = 130; % A
+sim.range.DCL_MIN = 0; % A
+
+% motor
+sim.range.MOTOR_VOLTAGE_MAX = 340; % V
+sim.range.MOTOR_VOLTAGE_MIN = 90; % V
+sim.range.MOTOR_CURRENT_MAX = 70; % A
+sim.range.MOTOR_CURRENT_MIN = 0; % A
+sim.range.MOTOR_TEMPERATURE_MAX = 100; % degC
+sim.range.MOTOR_TEMPERATURE_MIN = 0; % degC
+
+% motor controller
+sim.range.MOTOR_CONTROLLER_TEMPERATURE_MAX = 75; % degC
+sim.range.MOTOR_CONTROLLER_CURRENT_MAX = 140; % A
 
 % corner dynamics sensors
-CENTER_STEER_ANGLE_MAX = 130; % deg
-OMEGA_MAX = 150; % rad/s
-OMEGA_MIN = 0; % rad/s
-SHOCK_LENGTH_MAX = 0.25; % m
-SHOCK_LENGTH_MIN = 0; % m
-FZ_MAX = 1200; % N
-FZ_MIN = 200; % N
-
-% tvs saturation
-ABS_MIN_TORQUE = [0.01 0.01 0.01 0.01]; % Nm
-ABS_MAX_TORQUE = [25 25 25 25]; % Nm
-ABS_MAX_TRQ_CMD = dot(ABS_MAX_TORQUE, MOTOR_ENABLE);
-ABS_MIN_TRQ_CMD = sum(MOTOR_ENABLE) * 0.5 * dTx;
-
-% subsystem design saturation
-TIRE_ANGLE_MAX = 0.5; % rad
-VELOCITY_MAX_XY = norm(VELOCITY_MAX.*[1 1]); % m/s
-REF_YAW_MAX = 1.25; % rad/s
+sim.range.CENTER_STEER_ANGLE_MAX = 130; % deg
+sim.range.OMEGA_MAX = 150; % rad/s
+sim.range.OMEGA_MIN = 0; % rad/s
+sim.range.SHOCK_LENGTH_MAX = 0.25; % m
+sim.range.SHOCK_LENGTH_MIN = 0; % m
+sim.range.FZ_MAX = 1200; % N
+sim.range.FZ_MIN = 200; % N
 
 % driver saturation
-Max_Driver_Input = 1; % unitless
-Min_Driver_Input = 0; % unitless
+sim.range.Max_Driver_Input = 1; % unitless
+sim.range.Min_Driver_Input = 0; % unitless
 
-Max_Brake_Pressure = 10^8; % Pa
-Min_Brake_Pressure = 1; % Pa
-MAX_STEERING_ADJUST = 15; % deg
-MAX_DTHETA_DRIVER = 360; % deg/s
+sim.range.Max_Brake_Pressure = 6*10^6; % Pa
+sim.range.Min_Brake_Pressure = 1; % Pa
+sim.range.MAX_STEERING_ADJUST = 15; % deg
+sim.range.MAX_DTHETA_DRIVER = 360; % deg/s
+
+%% Update Tables
+TVS_Tables;
+Driver_Tables;
+Suspension_Tables;
+Chassis_Tables;
+Powertrain_Tables;
+Sensor_Tables;
+
+%% Cleanup & Saving
+clearvars -except chassis driver powertrain sensor sim suspension tvs out
+% save("all_sim_parameters.mat")

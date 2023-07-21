@@ -4,174 +4,153 @@
 % TOY   - time optimal yaw
 
 %% Startup
-% Run startup.m before running this file, ensure sweep_data.mat is up to date)
-clearvars -except S1 S2 S3 S4 deg2rad l steer_slope MAX_V MIN_V dv d0 CENTER_STEER_ANGLE_MAX ALL_SWEEP_DATA TOY_correction_factor
-% clc
-% load("sweep_data.mat")
-% load("PROCESSED_DATA\Sweep_Tables.mat");
-load("Yaw_Tables.mat")
+% Run startup.m before running this file. Run Track_Tables after running
+% this file
+clearvars -except S1 S2 S3 S4 deg2rad l steer_slope CENTER_STEER_ANGLE_MAX ALL_SWEEP_DATA out sim
+clc
 
-%% Simulation Conditions
-num1 = 671; % total number of data points collected, including buffer points
-steering = ALL_SWEEP_DATA.ccw_steering(1:num1,2); % ordered CCSA setpoints used in simulation (deg)
+load("Simulation_Data_Input\PROCESSED_DATA\Sweep_Tables.mat");
+
+%% Parameters
+max_steering_vel = 22; % m/s
+dv = 0.5; % m/s
+ds = 5; % deg
+dy = 0.05; % rad/s
+n = 3;
+
+%% Simulation Conditions & Data
 Digital_Signals = out.Digital_Signals;
-TV_Output = out.TV_Output;
+Vehicle_Signals = out.Vehicle_Signals;
 Driver_signals = out.Driver_Signals;
-Reference_Signals = out.Navigation_Reference;
 
-%% Lookup Table Breakpoints (sweep steering angle at set velocity, increase velocity, repeat)
-velocity_sweep = MIN_V:dv:MAX_V; % PCoGV sweep used in simulation
-steering_sweep = 0:d0:CENTER_STEER_ANGLE_MAX; % CCSA sweep used in simulation
-yaw_rate_sweep = 0:0.05:2; % vehicle body yaw rate (rad/s)
-num2 = length(velocity_sweep);
-num3 = length(steering_sweep);
-num4 = length(yaw_rate_sweep);
+steering_ref = ALL_SWEEP_DATA.ccw_steering(:,2);
 
-[velocity_grid, yaw_rate_grid] = meshgrid(velocity_sweep, yaw_rate_sweep);
+num2 = sum(steering_ref == 0) / 2;
+num3 = length(steering_ref) / num2;
 
-%% Initialize Variables
-yaw_rate = ones(1, num1);  % measured vehicle yaw rate in simulation order
-torque = ones(1, num1);    % measured tvs torque request in simulation order
-power_OUT = ones(1, num1); % measured vehicle output power in simulation order
-power_IN = ones(1, num1);  % measured vehicle input power in simulation order
-velocity = ones(1, num1);  % measured vehicle PCoGV in simulation order
+velocity_grid = reshape(ALL_SWEEP_DATA.ccw_steering(:,1), [num3 num2]);
+yaw_rate_grid = reshape(ALL_SWEEP_DATA.ccw_steering(:,2), [num3 num2]);
 
 %% Extract Raw Data
-% rear right TVS Torque request (Nm)
-torques = squeeze(TV_Output.Tx.Data)';
-torques = torques(:,4);
+% torques = Vehicle_Signals.trn.motor_torque>Data(:,4);
 
-steer = Reference_Signals.theta.Data(:);
-counter = out.counter.Data;
-
+theta = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
 omega_m = Driver_signals.Omega.Data;
-omega_ml = omega_m(:,3);
-omega_mr = omega_m(:,4);
-
 yaw_rates = Driver_signals.r.Data;
-
-battery_I = Digital_Signals.Power_Sensors.battery_I.Data;
-battery_V = Digital_Signals.Power_Sensors.battery_V.Data;
-
 xdot = Driver_signals.Vel.xdot.Data;
 ydot = Driver_signals.Vel.ydot.Data;
 
+battery_I = Digital_Signals.Power_Sensors.batt_I.Data;
+battery_V = Digital_Signals.Power_Sensors.batt_V.Data;
+
+counter = out.Sweep_Generator.counter.Data;
+
 %% Process Raw Data into Clean Data
-end_positions = find(counter == 0);        % indicies for the end of each PCoGV & CCSA setpoint
-omega_mean = mean([omega_ml omega_mr], 2); % mean rear tires angular velocity (rad/s)
+end_positions = [find(counter == 0); length(counter)];  % indicies for the end of each PCoGV & CCSA setpoint
+omega_mean = mean([omega_m(:,3) omega_m(:,4)], 2); % mean rear tires angular velocity (rad/s)
 velocities = sqrt(xdot.^2 + ydot.^2);      % vehicle PCoGV (m/s)
 
-% iterate through each PCoGV & CCSA setpoint, extract & order data by defined PCoGV & CCSA breakpoints
-for i = 1:num1
-    if (mod(i, num3+1) == 1)
-        yaw_rate(i) = 0;
-        %torque(i) = torques(end_positions(i));
-        velocity(i) = velocities(end_positions(i));
-        %power_OUT(i) = torque(i) * omega_mean(end_positions(i));
-        %power_IN(i) = battery_I(end_positions(i)) * battery_V(end_positions(i));
-    elseif (mod(i, num3+1) > 1)
-        yaw_rate(i) = yaw_rates(end_positions(i)-10);
-        %torque(i) = torques(end_positions(i));
-        velocity(i) = velocities(end_positions(i));
-        %power_OUT(i) = torque(i) * omega_mean(end_positions(i));
-        %power_IN(i) = battery_I(end_positions(i)) * battery_V(end_positions(i));
-    else
-        velocity(i) = 1;
-        steering(i) = 1;
-    end
-end
+yaw_rate = reshape(yaw_rates(end_positions), [num3 num2]);
+velocity = reshape(velocities(end_positions), [num3 num2]);
+steering = reshape(theta(end_positions), [num3 num2]);
+%torque = reshape(torques(end_positions), [num3 num2]);
+%power_OUT = reshape(torques(end_positions) .* omega_mean(end_positions), [num3 num2]);
+power_IN = reshape(battery_I(end_positions) .* battery_V(end_positions), [num3 num2]);
 
-% remove unwanted PCoGV & CCSA setpoints
-yaw_rate = yaw_rate(find(yaw_rate~=1));
-velocity = velocity(find(velocity~=1));
-steering = steering(find(steering~=1));
-torque = torque(find(torque~=1));
-power_OUT = power_OUT(find(power_OUT~=1));
-power_IN = power_IN(find(power_IN~=1));
+%% Calculate All RAW Lookup Tables
+[max_yaw_v, ~] = max(yaw_rate);
+[max_yaw_s, ~] = max(yaw_rate,[],2);
+limit_velocity = velocity(1,:);
+limit_steering = steering(:,1);
 
-%% Reshape Data (to conform with 2D lookup table convention)
-% yaw_rate = reshape(yaw_rate, [num3 num2]);
-% velocity = reshape(velocity, [num3 num2]);
-% steering = reshape(steering, [num3 num2]);
-% torque = reshape(torque, [num3 num2]);
-% power_OUT = reshape(power_OUT, [num3 num2]);
-% power_IN = reshape(power_IN, [num3 num2]);
+max_v_bp = min(limit_velocity):dv:max(limit_velocity);
+max_v_bp2 = max_v_bp(n:end);
+max_s_bp = min(limit_steering):ds:max(limit_steering);
+max_y_bp = min(yaw_rate(:)):dy:max(yaw_rate(:));
+[limit_velocity_grid, limit_steering_grid] = meshgrid(max_v_bp,max_s_bp);
+[limit_velocity_grid2, limit_yaw_rate_grid] = meshgrid(max_v_bp,max_y_bp);
 
-%% Yaw Rate Gradient
-yaw_rate_gradient = ones(num3, num2);
-peaks = num3.*ones(1, num2);
+% calculate max allow yaw rate given velocity
+[xData, yData] = prepareCurveData( limit_velocity, max_yaw_v );
+ft = 'pchipinterp';
+[fitresult1, gof] = fit( xData, yData, ft, 'Normalize', 'on' );
 
-% find slope of yaw rate curve
-for i = 1:num2
-    for j = 1:num3
-        if j == 1
-            yaw_rate_gradient(j, i) = 1;
-        elseif j == num3
-            yaw_rate_gradient(j, i) = -1;
-        else
-            slope_lower = yaw_rate(j, i) - yaw_rate(j-1, i);
-            slope_upper = yaw_rate(j+1, i) - yaw_rate(j, i);
+% calculate max allowed steering angle given max allowed yaw rate
+[xData, yData] = prepareCurveData( max_yaw_s, limit_steering );
+ft = fittype( 'smoothingspline' );
+opts = fitoptions( 'Method', 'SmoothingSpline' );
+opts.SmoothingParam = 0.99999;
+[fitresult2, gof] = fit( xData, yData, ft, opts );
 
-            yaw_rate_gradient(j, i) = sign(slope_upper + slope_lower);
-
-            if ((sign(slope_lower) + sign(slope_upper)) == 0)
-                peaks(i) = j;
-            end
-        end
-    end
-end
-
-% split yaw rate curve into 2 pieces
-yaw_rate_Up = yaw_rate(yaw_rate_gradient > 0);
-steering_Up = steering(yaw_rate_gradient > 0);
-velocity_Up = velocity(yaw_rate_gradient > 0);
-
-yaw_rate_Dn = yaw_rate(yaw_rate_gradient < 0);
-steering_Dn = steering(yaw_rate_gradient < 0);
-velocity_Dn = velocity(yaw_rate_gradient < 0);
-
-% fitting TOY close data
-[xData, yData, zData] = prepareSurfaceData(yaw_rate_Up, velocity_Up, steering_Up);
-ft = fittype('loess');
-[fitresult, gof] = fit([xData, yData], zData, ft, 'Normalize', 'on');
-
-steering_Up_Grid = reshape(feval(fitresult,[yaw_rate_grid(:),velocity_grid(:)]), [num4, num2]);
-
-% fitting understeering data
-[xData, yData, zData] = prepareSurfaceData(yaw_rate_Dn, velocity_Dn, steering_Dn);
-ft = fittype('loess');
-[fitresult, gof] = fit([xData, yData], zData, ft, 'Normalize', 'on');
-
-steering_Dn_Grid = reshape(feval(fitresult,[yaw_rate_grid(:),velocity_grid(:)]), [num4, num2]);
-
-%% TOY Bias (adjusting vehicle yaw rate to improve performance)
-x = steering_sweep.*steer_slope; % rack displacement (m)
-theta_left = deg2rad.*((S1*x.^3) - (S2*x.^2) + (S3.*x) - S4); % front left tire angle (rad)
-theta_right = deg2rad.*((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4); % front right tire angle (rad)
-theta_avg = mean([theta_left; theta_right])' * ones(1, num2); % mean front tire angles (rad)
-
-yaw_rate_TOY = velocity .* theta_avg ./ sum(l); % TOY (rad/s)
-TOY_error = yaw_rate_TOY - yaw_rate; % error between vehicle steady state yaw, and correspond TOY at the same PCoGV & CCSA
+% calculate overall lookup table
+[xData, yData, zData] = prepareSurfaceData( velocity, steering, yaw_rate );
+ft = 'linearinterp';
+[fitresult3, gof] = fit( [xData, yData], zData, ft, 'Normalize', 'on' );
 
 %% Minimum Turning Radius
-[max_yaw, idx_yaw] = max(yaw_rate);
-limit_velocity = velocity(1,:);
-R_sweep = limit_velocity ./ max_yaw;
-limit_velocity_coeffs = [-1.552 4.137 0.1161];
+max_yaw_table = feval(fitresult1, max_v_bp);
+max_theta_table = feval(fitresult2, max_yaw_table);
+max_yaw_table_ref = feval(fitresult3, limit_velocity_grid,limit_steering_grid);
 
-%% Final Calculations
-skidpad_radius = 7.5.*ones(num3, num2); % m
-vehicle_e = power_OUT ./ power_IN; % vehicle overall power efficiency
-radius = velocity ./ yaw_rate; % vehicle turning radius as function of PCoGV & CCSA
-max_yaw = max(yaw_rate);
+[max_theta, max_theta_idx] = max(max_theta_table);
+critical_velocity = max_v_bp(max_theta_idx);
+critical_radius = max_v_bp(n:end) ./ max_yaw_table(n:end)';
+
+max_steering = (ones(1,length(max_v_bp)).*sim.range.CENTER_STEER_ANGLE_MAX).*(max_v_bp < critical_velocity);
+normal_steering = max_theta_table' .* (max_v_bp >= critical_velocity);
+
+max_theta_table = min(sim.range.CENTER_STEER_ANGLE_MAX,max_steering + normal_steering);
+
+yaw_rate_table = max_yaw_table_ref.*((gradient(max_yaw_table_ref) >= 0) & (limit_velocity_grid < max_steering_vel));
+yaw_rate_table(yaw_rate_table==0) = nan;
+
+[xData, yData, zData] = prepareSurfaceData( limit_velocity_grid, yaw_rate_table, limit_steering_grid );
+ft = 'linearinterp';
+[fitresult4, gof] = fit( [xData, yData], zData, ft, 'Normalize', 'on' );
+
+[xData, yData] = prepareCurveData( critical_radius, max_v_bp2 );
+ft = 'pchipinterp';
+[fitresult5, gof] = fit( xData, yData, ft, 'Normalize', 'on' );
+
+steering_angle_table = feval(fitresult4, limit_velocity_grid2, limit_yaw_rate_grid);
+steering_angle_table(1,:) = 0;
+
+%% TOY Bias (adjusting vehicle yaw rate to improve performance)
+% x = steering.*steer_slope; % rack displacement (m)
+% theta_left = deg2rad.*((S1*x.^3) - (S2*x.^2) + (S3.*x) - S4); % front left tire angle (rad)
+% theta_right = deg2rad.*((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4); % front right tire angle (rad)
+% theta_avg = mean([theta_left; theta_right]); % mean front tire angles (rad)
+% 
+% yaw_rate_TOY = velocity .* theta_avg ./ sum(l); % TOY (rad/s)
+% TOY_error = yaw_rate_TOY - yaw_rate; % error between vehicle steady state yaw, and correspond TOY at the same PCoGV & CCSA
+% 
+% %% Final Calculations
+% skidpad_radius = 7.5.*ones(num3, num2); % m
+% vehicle_e = power_OUT ./ power_IN; % vehicle overall power efficiency
+% radius = velocity ./ yaw_rate; % vehicle turning radius as function of PCoGV & CCSA
+
+%% Populate TVS Struct
+tvs.yaw_control.max_v_bp = max_v_bp;
+tvs.yaw_control.max_s_bp = max_s_bp;
+tvs.yaw_control.max_yaw_table_ref = max_yaw_table_ref;
+
+driver.control.max_v_bp = max_v_bp;
+driver.control.max_s_bp = max_s_bp;
+driver.control.max_y_bp = max_y_bp;
+driver.control.steering_angle_table = steering_angle_table;
+driver.control.max_yaw_table = max_yaw_table;
+driver.control.max_theta_table = max_theta_table;
 
 %% Cleaning up & Saving
-clearvars -except steering_sweep velocity_sweep yaw_rate_sweep yaw_rate steering_Up_Grid steering_Dn_Grid yaw_rate_gradient limit_velocity_coeffs max_yaw
+clearvars -except tvs driver fitresult5
 
-save("PROCESSED_DATA\Yaw_Tables.mat")
+save("PROCESSED_DATA\TVS_Tables.mat", "tvs");
+save("PROCESSED_DATA\Driver_Tables.mat", "driver");
+save("PROCESSED_DATA\Yaw_Tables.mat", "fitresult5");
 
 %% Data Viewing
-% scatter3(velocity(:), steering(:), yaw_rate(:))
+% scatter3(limit_velocity_grid,limit_steering_grid,max_yaw_table_ref)
+% scatter3(max_yaw_bp,max_theta_table,max_yaw_table);hold on;scatter3(velocity(:), steering(:), yaw_rate(:))
 % scatter3(velocity(:), steering(:), yaw_rate_TOY(:))
 % scatter3(velocity(:), steering(:), TOY_error(:))
 % scatter3(velocity(:), steering(:), TOY_correction_table(:))
@@ -191,13 +170,6 @@ save("PROCESSED_DATA\Yaw_Tables.mat")
 % zlabel("Battery Output Power (W)")
 
 % scatter3(velocity(:), steering(:), vehicle_e(:))
-
 % scatter3(velocity(:), steering(:), radius(:))
 % hold on
-% scatter3(velocity(:), steering(:), skidpad_radius(:))
-
-% scatter3(velocity(:), steering(:), yaw_rate_gradient(:))
-
-% scatter3(velocity_grid(:), yaw_rate_grid(:), steering_Dn_Grid(:))
-% scatter3(velocity_grid(:), yaw_rate_grid(:), steering_Up_Grid(:))
-% scatter3(velocity_Up(:), steering_Up_Grid(:), yaw_rate_Up(:))
+% scatter3(velocity(:), steering(:), skidpad_radius(:)

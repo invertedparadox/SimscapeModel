@@ -1,22 +1,87 @@
 %% Extract Bus Data
+Chassis_Signals = out.Vehicle_Signals.veh;
+Digital_Signals = out.Digital_Signals;
+
 TV_OUTPUT = out.TV_Output;
-Reference_Signals = out.Navigation_Reference;
 Fused_Signals = out.Sensor_Fused;
 Reference_Generator = out.Reference_Generator;
-Digital_Signals = out.Digital_Signals;
+
 Lookup_Steering = out.lookup_steering;
-time = Digital_Signals.Navigation_Sensors.gyro.Time;
-time_15 = TV_OUTPUT.ub.Time;
 Vehicle = out.Vehicle_Signals;
 throttle = out.Throttle.Data(:);
+
+time = Digital_Signals.Navigation_Sensors.gyro.Time;
+time_15 = TV_OUTPUT.ub.Time;
+time_10 = Digital_Signals.Navigation_Sensors.acc.Time;
+time_sim = out.tout;
+
+%% Overall Vehicle Path & Stability
+X_ref = Reference_Generator.x_ref.Data;
+Y_ref = Reference_Generator.y_ref.Data;
+X = Chassis_Signals.InertFrm.Cg.Disp.X.Data(:);
+Y = Chassis_Signals.InertFrm.Cg.Disp.Y.Data(:);
+
+omega = squeeze(Digital_Signals.Corner_Dynamics_Sensors.omega.Data)';
+
+Fz = Digital_Signals.Corner_Dynamics_Sensors.FZ.Data;
+
+steer = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
+
+% Calculations
+time_acceleration = min(time_sim(X>=75));
+
+figure(1)
+% position
+subplot(2,2,1)
+plot(Y_ref, X_ref)
+hold on
+plot(Y, X)
+
+xlabel("Position Y (m)")
+ylabel("Position X (m)")
+legend("Reference","Actual")
+
+% wheel speed
+subplot(2,2,2)
+plot(time_10, omega(:,1))
+hold on
+plot(time_10, omega(:,2))
+hold on
+plot(time_10, omega(:,3))
+hold on
+plot(time_10, omega(:,4))
+
+xlabel("time (s)")
+ylabel("Wheel Speed (rad/s)")
+legend("FL","FR","RL","RR")
+
+% steering
+subplot(2,2,3)
+plot(time_10, steer)
+% hold on
+% plot(time_10, steering_ss)
+
+xlabel("time (s)")
+ylabel("Steering Angle (deg)")
+% legend("Actual", "Steady State")
+
+% normal force
+subplot(2,2,4)
+plot(time_10, Fz(:,1))
+hold on
+plot(time_10, Fz(:,2))
+hold on
+plot(time_10, Fz(:,3))
+hold on
+plot(time_10, Fz(:,4))
+
+xlabel("time (s)")
+ylabel("Normal Force (N)")
+legend("FL","FR","RL","RR")
 
 %% Vehicle Dynamics
 yaw_rates = Reference_Signals.Chassis_AngularVelocity.Data(:,3);
 ref_yaw_rates = TV_OUTPUT.ref_yaw.Data;
-steering_ss = Lookup_Steering.Data;
-
-X = Reference_Signals.Chassis_Position.X.Data(:);
-Y = Reference_Signals.Chassis_Position.Y.Data(:);
 
 ax = Reference_Signals.Chassis_Acceleration_VNED.ax.Data(:);
 ay = Reference_Signals.Chassis_Acceleration_VNED.ay.Data(:);
@@ -25,13 +90,6 @@ az = Reference_Signals.Chassis_Acceleration_VNED.az.Data(:);
 steering_10 = Reference_Signals.theta.Data(:);
 
 Acceleration_REF = [ax, ay, az];
-
-X_ref = Reference_Generator.x_ref.Data;
-Y_ref = Reference_Generator.y_ref.Data;
-
-omega = squeeze(Digital_Signals.Corner_Dynamics_Sensors.omega.Data)';
-Fz = Digital_Signals.Corner_Dynamics_Sensors.FZ.Data;
-steer = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
 
 %% TVS
 flag = TV_OUTPUT.bigM_flag.Data;
@@ -78,8 +136,8 @@ PositionZ_REF = Reference_Signals.Chassis_Position.Z.data(:);
 Position_REF = [PositionX_REF PositionY_REF PositionZ_REF];
 Position_FUS = squeeze(Fused_Signals.pos_VNED.Data)';
 
-pos_error = Position_REF - Position_FUS;
-pos_norm_error = vecnorm(pos_error');
+% pos_error = Position_REF - Position_FUS;
+% pos_norm_error = vecnorm(pos_error');
 
 % orientation
 Orientation_REF = squeeze(Reference_Signals.Chassis_Orientation.Data);
@@ -107,61 +165,13 @@ Velocity_Z_REF = Reference_Signals.Chassis_Velocity_VNED.zdot.data(:,1);
 Velocity_REF = [Velocity_X_REF Velocity_Y_REF Velocity_Z_REF];
 Velocity_FUS = squeeze(Fused_Signals.vel_VNED.Data);
 
-vel_error = Velocity_REF - Velocity_FUS;
-vel_norm_error = vecnorm(vel_error');
+% vel_error = Velocity_REF - Velocity_FUS;
+% vel_norm_error = vecnorm(vel_error');
 
 Velocity_PCoG = vecnorm([Velocity_X_REF,Velocity_Y_REF]');
 
 %% Simulation Validation
-figure(1)
 
-% position
-subplot(2,2,1)
-plot(Y_ref, X_ref)
-hold on
-plot(Y, X)
-
-xlabel("Position Y (m)")
-ylabel("Position X (m)")
-legend("Reference","Actual")
-
-% steering
-subplot(2,2,2)
-plot(time_15, steer)
-hold on
-plot(time_15, steering_ss)
-
-xlabel("time (s)")
-ylabel("Steering Angle (deg)")
-legend("Actual", "Steady State")
-
-% omega
-subplot(2,2,3)
-plot(time_15, omega(:,1))
-hold on
-plot(time_15, omega(:,2))
-hold on
-plot(time_15, omega(:,3))
-hold on
-plot(time_15, omega(:,4))
-
-xlabel("time (s)")
-ylabel("Wheel Speed (rad/s)")
-legend("FL","FR","RL","RR")
-
-% Fz
-subplot(2,2,4)
-plot(time_15, Fz(:,1))
-hold on
-plot(time_15, Fz(:,2))
-hold on
-plot(time_15, Fz(:,3))
-hold on
-plot(time_15, Fz(:,4))
-
-xlabel("time (s)")
-ylabel("Normal Force (N)")
-legend("FL","FR","RL","RR")
 
 %% Plotting TVS
 figure(2)

@@ -20,26 +20,56 @@
 % 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Startup
-clearvars -except CENTER_STEER_ANGLE_MAX s l
-
 %% Conversions
 lbin2kgm = 4.44822162/0.0254; % (N*in)/(lb*m)
 
 %% Scalar Prameters
-Kz = 250*lbin2kgm; % N/m spring constant per wheel
-F0z = [0 0]; % N preload per wheel
-Hmax = 0.05715 + 0.0225; % m
-AntiSwayR = 0.0635; % m
-AntiSwayNtrlAng = pi/4; % rad
-AntiSwayTrsK = 1218; % Nm/rad
-ActSuspDutyCycle = 1; % none
+suspension.shock.Kz = 250*lbin2kgm; % N/m spring constant per wheel
+suspension.shock.F0z = [0 0]; % N preload per wheel
+suspension.shock.Hmax = 0.05715 + 0.0225; % m
+suspension.arb.AntiSwayR = 0.0635; % m
+suspension.arb.AntiSwayNtrlAng = pi/4; % rad
+suspension.arb.AntiSwayTrsK = 1218; % Nm/rad
 
 steer_slope = 0.282; % CCSA to rack displacement slope (mm/deg)
 S1 = 7E-5; % rack displacement to tire angle x^3 coefficient (deg/mm^3)
 S2 = -0.0038; % rack displacement to tire angle x^2 coefficient (deg/mm^2)
 S3 = 0.6535; % rack displacement to tire angle x coefficient (deg/mm)
 S4 = 0.1061; % rack displacement to tire angle constant coefficient (deg)
+
+%% Tire
+suspension.tire.WIDTH = 0.1524; % m
+suspension.tire.RIM_RADIUS = 0.1524; % m
+suspension.tire.RE = 0.223; % m
+suspension.tire.UNLOADED_RADIUS = suspension.tire.RE + 0.002; % m
+suspension.tire.br = 1e-2; % Nm*s/rad
+suspension.tire.IYY = 0.3; % kg*m^2
+suspension.tire.VERTICAL_DAMPING = 500; % Ns/m
+
+Fz = [0 204.13 427.04 668.1 895.72 1124.40 1324.40]; % tire normal force sample points (N)
+cy = [0 13757.41 21278.97 26666.02 30253.47 30313.18 30313.18]; % lateral tire stiffness (N/rad)
+A1 = 39.8344; % longitudinal tire stiffness x coefficient (1/rad)
+A2 = 813.0780; % longitudinal tire stiffness constant coefficient (N/rad)
+B1 = 0.000001287; % longitudinal tire coefficient of friction x^2 coefficient (1/N^2)
+B2 = -0.002325; % longitudinal tire coefficient of friction x coefficient (1/N)
+B3 = 3.797; % longitudinal tire coefficient of friction constant coefficient (none)
+C1 = -0.000000002541; % lateral tire coefficient of friction x^3 coefficient (1/N^3)
+C2 = 0.000005279; % lateral tire coefficient of friction x^2 coefficient (1/N^2)
+C3 = -0.003943; % lateral tire coefficient of friction x coefficient (1/N)
+C4 = 3.6340; % lateral tire coefficient of friction constant coefficient (none)
+
+% create coefficient matricies for each model
+p_kx = [A1 A2];
+p_mx = [B1 B2 B3];
+p_my = [C1 C2 C3 C4];
+
+suspension.tire.Fz_sweep = sim.range.FZ_MIN:10:sim.range.FZ_MAX; % tire normal force breakpoints (N)
+
+% calculate tables values
+suspension.tire.kx_sweep = polyval(p_kx, suspension.tire.Fz_sweep); % longitudinal tire stiffness (N/rad)
+suspension.tire.cy_sweep = pchip(Fz, cy, suspension.tire.Fz_sweep); % lateral tire stiffness (N/rad)
+suspension.tire.mx_sweep = polyval(p_mx, suspension.tire.Fz_sweep); % longitudinal coefficient of friction
+suspension.tire.my_sweep = polyval(p_my, suspension.tire.Fz_sweep); % lateral coefficient of friction
 
 %% Import Data
 % import damper dyno data
@@ -62,46 +92,37 @@ sus_damper_for = [-flipud(DamperDataSample(:,2)); DamperDataSample(2:end,4)];
 sus_damper_con = ((sus_damper_for ./ abs(sus_damper_vel)) * [1 1])';
 
 % replace NaN damping coefficient with interpolated value
-f_act_susp_cz = fillmissing(sus_damper_con,'pchip',2);
+suspension.shock.f_act_susp_cz = fillmissing(sus_damper_con,'pchip',2);
 
 % set velocity breakpoints for damping coefficient
-f_act_susp_zdot_bpt = sus_damper_vel';
+suspension.shock.f_act_susp_zdot_bpt = sus_damper_vel';
 
 % set duty cycle breakpoints (this is only applicable to active damper, for now this parameter is set to dummy value
-f_act_susp_duty_bpt = [0 1];
+suspension.shock.f_act_susp_duty_bpt = [0 1];
 
 %% Generate Front Tire Angles Table
 % CCSA breakpoints 
-theta_sweep = -CENTER_STEER_ANGLE_MAX:1:CENTER_STEER_ANGLE_MAX;
+suspension.steering.theta_sweep = -sim.range.CENTER_STEER_ANGLE_MAX:1:sim.range.CENTER_STEER_ANGLE_MAX;
 
 % rack displacement (m)
-x = theta_sweep.*steer_slope;
+x = suspension.steering.theta_sweep.*steer_slope;
 
 % left tire angle (rad)
-theta_left = deg2rad((S1*x.^3) - (S2*x.^2) + (S3.*x) - S4);
+suspension.steering.theta_left = deg2rad((S1*x.^3) - (S2*x.^2) + (S3.*x) - S4);
 
 % right tire angle (rad)
-theta_right = deg2rad((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4);
+suspension.steering.theta_right = deg2rad((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4);
 
 % precomputation of Aeq
-theta_tires = [theta_left; theta_right];
+theta_tires = [suspension.steering.theta_left; suspension.steering.theta_right];
 left_tires = cos(theta_tires);
 right_tires = sin(theta_tires);
 
 % left Aeq
-Aeq_left = sum([s(1); l(1)] .* [left_tires(1,:); right_tires(1,:)]);
+suspension.steering.Aeq_left = sum([chassis.geometry.s(1); chassis.geometry.l(1)] .* [left_tires(1,:); right_tires(1,:)]);
 
 % right Aeq
-Aeq_right = sum([-s(1); l(1)] .* [left_tires(2,:); right_tires(2,:)]);
+suspension.steering.Aeq_right = sum([-chassis.geometry.s(1); chassis.geometry.l(1)] .* [left_tires(2,:); right_tires(2,:)]);
 
 %% Cleanup & Saving
-clearvars -except f_act_susp_cz f_act_susp_zdot_bpt f_act_susp_duty_bpt ...
-    theta_sweep theta_right theta_left Aeq_left Aeq_right steer_slope S1 ...
-    S2 S3 S4 Kz F0z Hmax AntiSwayR AntiSwayNtrlAng AntiSwayTrsK ActSuspDutyCycle
-save("PROCESSED_DATA\Suspension_Tables.mat")
-
-%% Data Viewing
-% scatter(f_act_susp_zdot_bpt, f_act_susp_cz(1,:))
-% scatter(theta_sweep, theta_left)
-% hold on
-% scatter(theta_sweep, theta_right)
+save("PROCESSED_DATA\Suspension_Tables.mat","suspension")

@@ -1,7 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PER 2023
 % Program Description 
-% This program sets essential parameters for TVS
+% This program sets essential parameters for TVS power, yaw and traction
+% control.
 %
 % Input Arguments
 % None
@@ -17,46 +18,64 @@
 % Front tire angles [FL FR] = f(CCSA)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% TVS Parameters
-% small delta parameters
-dB = 0.001; % rad/s^2
-dTx = 0.01; % Nm
-yaw_error_limit = 0.2; % rad/s^2
-low_V_SA = 0.001; % rad
+%% Power Control Law
+tvs.power_control.dTx = 0.01; % Nm
+tvs.power_control.min_velocity_regen = 1.4; % m/s
 
-% static parameters
-Torque_Up_Rate_Limit = 125; % Nm/s
-Torque_Down_Rate_Limit = 30000; % Nm/s
-Vth = 2; % m/s
-ang_acc_hystersesis = 0.1; % rad/s^2
-alpha_error = 0.1;
-torque_sat_const = 0.5;
-default_power_dist = [0.25, 0.25, 0.25, 0.25]; % percent
-min_velocity_regen = 1.4; % m/s
+tvs.power_control.ABS_MIN_TORQUE = [0 0 0 0]; % Nm
+tvs.power_control.ABS_MAX_TORQUE = [25 25 25 25]; % Nm
+tvs.power_control.ABS_MAX_TRQ_CMD = dot(tvs.power_control.ABS_MAX_TORQUE, sim.top_parameters.MOTOR_ENABLE);
+tvs.power_control.ABS_MIN_TRQ_CMD = dot(tvs.power_control.ABS_MIN_TORQUE, sim.top_parameters.MOTOR_ENABLE);
 
-% tunable parameters
-deadband_angle = 12;
-P = 2;
-I = 0;
-CURRENT_BUFFER = 25; % Buffer value enforced between maxAmps and  before torque capped
-TVS_Intensity = 1;
-TVS_Intensity_Calibration = 1;
+MOTOR_CURRENT_LIMIT = [55 55 55 55]; % A
+tvs.power_control.ABS_MAX_I_FLOW = dot(MOTOR_CURRENT_LIMIT, sim.top_parameters.MOTOR_ENABLE);
 
-% Power Control Laws
-STEPS = 10;
+dT_motor = 25; % degC
+dT_motor_controller = 50; % degC
 
-% Throttle Map
-throttleX = 0:1/STEPS:1;
-throttleCurve = polyval([1 0], throttleX);
+ABS_MAX_MOTOR_I = dot(sim.top_parameters.MOTOR_ENABLE,sim.range.MOTOR_CURRENT_MAX.*ones(1,4));
+ABS_MAX_MOTOR_CONTROLLER_I = dot(sim.top_parameters.MOTOR_ENABLE,sim.range.MOTOR_CONTROLLER_CURRENT_MAX.*ones(1,4));
 
-% Motor Controller Map
-motorControllerCurve = [25, 260; 50, 130; 75, 0];
+tvs.power_control.motor_controller_t_bp = [sim.range.MOTOR_CONTROLLER_TEMPERATURE_MAX-dT_motor_controller sim.range.MOTOR_CONTROLLER_TEMPERATURE_MAX];
+tvs.power_control.motor_controller_I_table = [ABS_MAX_MOTOR_CONTROLLER_I 0];
 
-% Motor Map
-maxMotorTemp = 95;
-minMotorTemp = 75;
-motorTempX = minMotorTemp : (maxMotorTemp-minMotorTemp) / STEPS : maxMotorTemp;
-motorTempCurve = 140 -  (motorTempX - minMotorTemp) .^ 2 .* (140) / (maxMotorTemp - minMotorTemp)^2;
+tvs.power_control.motor_t_bp = [sim.range.MOTOR_TEMPERATURE_MAX-dT_motor sim.range.MOTOR_TEMPERATURE_MAX];
+tvs.power_control.motor_I_table = [ABS_MAX_MOTOR_I 0];
+
+%% Yaw Control Law
+tvs.yaw_control.dy = 0.2; % rad/s^2
+tvs.yaw_control.torque_sat_const = 0.5;
+tvs.yaw_control.dB = 0.001; % rad/s^2
+
+tvs.yaw_control.ang_acc_hystersesis = 0.1; % rad/s^2
+tvs.yaw_control.yaw_filter = 0.1;
+
+tvs.yaw_control.deadband_angle = 12;
+tvs.yaw_control.TVS_Intensity = 1;
+tvs.yaw_control.P = 20;
+tvs.yaw_control.I = 0;
+
+%% Traction Control Law
+tvs.traction_control.Vth = 2; % m/s
+tvs.traction_control.low_V_SA = 0.001; % rad
+
+%% Torque Control Law
+wc = 0; % rad/s
+wm = 675; % rad/s
+wf = 1150; % rad/s
+dK = 0.025;
+
+tvs.torque_control.omega_bp = [wc wm wf]; % rad/s
+k_linear_bp = 0.05:0.05:0.95;
+
+k_actual_1 = zeros(1,length(k_linear_bp));
+k_actual_2 = ((wm/wf).*(1-k_linear_bp)) + k_linear_bp;
+k_actual_3 = ones(1,length(k_linear_bp));
+
+k_actual = [k_actual_1; k_actual_2; k_actual_3];
+tvs.torque_control.k_actual = [[0; 0; 0;],[0; 0; 0;],k_actual,[1; 1; 1],[1; 1; 1]];
+tvs.torque_control.k_linear_bp = [0 dK k_linear_bp 1-dK 1];
+
 
 %% Cleanup & Saving
-save("PROCESSED_DATA\TVS_Tables.mat")
+save("PROCESSED_DATA\TVS_Tables.mat","tvs")

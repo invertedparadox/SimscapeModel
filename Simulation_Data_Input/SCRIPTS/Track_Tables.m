@@ -1,5 +1,5 @@
 %% Startup
-clearvars -except dx limit_velocity_coeffs
+clear
 clc;
 
 %% Parameters
@@ -9,16 +9,18 @@ Yi = 0;
 
 % import data
 load("PROCESSED_DATA\Track_Tables.mat");
+load("Simulation_Data_Input\PROCESSED_DATA\Driver_Tables.mat");
+load("Simulation_Data_Input\PROCESSED_DATA\Yaw_Tables.mat");
 
 % all generated tracks
-event_names = ["acceleration", "skidpad", "austria_endurance", "l_square", "r_square", "short_oc", "grand_prix", "track_Left", "track_Right", "long_straight", "grand_prix_5"];
+event_names = ["acceleration", "skidpad", "austria_endurance", "l_square", "r_square", "short_oc", "grand_prix", "track_Left", "track_Right", "long_straight", "grand_prix_5", "acceleration_testing"];
 sweep_names = ["ccw_steering"];
 
 % path to all track files
 PATH = "RAW_DATA/";
 
 % selected track to update or add
-track_name = event_names(10); % notepad file name
+track_name = event_names(3); % notepad file name
 
 %% Set up the Import Options and import the data
 opts = delimitedTextImportOptions("NumVariables", 3);
@@ -44,7 +46,7 @@ m = [inf];
 target_radius = [track_xy(1, 2)];
 num_sections = length(track_xy(:,1));
 turn_direction = [0];
-num_coordinates = ceil(sum(track_xy(:, 1)) / dx);
+num_coordinates = ceil(sum(track_xy(:, 1)) / driver.vision.dx);
 track_data = zeros(num_coordinates, 3);
 x3 = [Xi];
 y3 = [Yi];
@@ -64,8 +66,8 @@ limit_velocity = [];
 %% Generate Track
 for i = 1:num_sections   
     % generate array of distance to decimate the current track segment
-    num3 = floor(track_xy(i, 1) / dx);
-    distances = (0:dx:dx*num3)' + track_data(counter-1, 1);
+    num3 = floor(track_xy(i, 1) / driver.vision.dx);
+    distances = (0:driver.vision.dx:driver.vision.dx*num3)' + track_data(counter-1, 1);
 
     if distances(end) ~= (track_xy(i, 1) + track_data(counter-1, 1))
         distances(end+1) = (track_xy(i, 1) + track_data(counter-1, 1));
@@ -78,7 +80,7 @@ for i = 1:num_sections
         turning_radius = 106;
     end
     
-    limit_velocity(end+1) = limit_velocity_coeffs(1) + (limit_velocity_coeffs(2)*log(turning_radius)) + (limit_velocity_coeffs(3)*turning_radius);
+    limit_velocity(end+1) = max(0,feval(fitresult5,turning_radius));
 
     track_data(counter:counter+num3, 1) = distances;
     counter = counter + num3 + 1;
@@ -221,7 +223,6 @@ ALL_TRACK_DATA.(track_name) = [m' y3' x3' r' turn_direction' yc', xc', psi', di'
 
 %% Save Track Data
 clearvars -except ALL_TRACK_DATA event_names sweep_names MIN_TRACK_DATA
-
 save("PROCESSED_DATA\Track_Tables.mat")
 
 %% Data Viewing
