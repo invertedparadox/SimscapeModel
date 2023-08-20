@@ -1,6 +1,0 @@
-%implements s67_b0_6k8rf_2_ModuleConstants "C"
-
-%function ModuleConstants(block) Output
-
-#define car_model_FIXED_period (0.015)
-%endfunction

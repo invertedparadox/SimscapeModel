@@ -1,5 +1,5 @@
 PER Project Notes
-x- Electric Fail States
+x - Electric Fail States
 	- Battery
 		- Must be <60 C
 		- Ambient should be 25 C
