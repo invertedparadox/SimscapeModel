@@ -18,8 +18,11 @@
 % Damper Lookup: Damper Force = f(shock velocity, duty cycle)
 % Front tire angles [FL FR] = f(CCSA)
 % 
-%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Startup
+clearvars -except sim
+load("PROCESSED_DATA\Chassis_Tables.mat");
+
 %% Conversions
 lbin2kgm = 4.44822162/0.0254; % (N*in)/(lb*m)
 
@@ -71,7 +74,7 @@ suspension.tire.cy_sweep = pchip(Fz, cy, suspension.tire.Fz_sweep); % lateral ti
 suspension.tire.mx_sweep = polyval(p_mx, suspension.tire.Fz_sweep); % longitudinal coefficient of friction
 suspension.tire.my_sweep = polyval(p_my, suspension.tire.Fz_sweep); % lateral coefficient of friction
 
-%% Import Data
+%% Import Damper Data
 % import damper dyno data
 opts = spreadsheetImportOptions("NumVariables", 4);
 opts.Sheet = "0-4.3 0-4.3";
@@ -125,4 +128,5 @@ suspension.steering.Aeq_left = sum([chassis.geometry.s(1); chassis.geometry.l(1)
 suspension.steering.Aeq_right = sum([-chassis.geometry.s(1); chassis.geometry.l(1)] .* [left_tires(2,:); right_tires(2,:)]);
 
 %% Cleanup & Saving
-save("PROCESSED_DATA\Suspension_Tables.mat","suspension")
+save("Vehicle Parameters/PROCESSED_DATA\Suspension_Tables.mat","suspension");
+clearvars -except sim

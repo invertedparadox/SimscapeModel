@@ -1,0 +1,6 @@
+%implements s55_b0_ou76l_ModuleConstants "C"
+
+%function ModuleConstants(block) Output
+
+#define Closed_Loop_Simulation_period (0.01)
+%endfunction

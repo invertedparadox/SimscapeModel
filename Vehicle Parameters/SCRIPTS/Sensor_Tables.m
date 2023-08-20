@@ -17,6 +17,9 @@
 % max_torque_table - max_torque_table = f(speed_bp)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Startup
+clearvars -except sim
+
 %% Sensor Modeling Parameters
 % GPS performance
 sensor.gps.GPS_Z_ACCURACY = 1.6; % m
@@ -72,19 +75,6 @@ sensor.imu.covM = 0.99;
 sensor.gps.covP = 1;
 sensor.gps.covV = 0.1747;
 
-% Sensor Covariance
-% covA = 800;
-% covG = 0.0001;
-% covM = 80;
-% covP = 34;
-% covV = 0.0464;
-
-% covA = 4.4;
-% covG = 0.0018;
-% covM = 80;
-% covP = 1;
-% covV = 0.0464;
-
 %% Filter Noise Parameters
 QuaternionNoise = [1e-06 1e-06 1e-06 1e-06];     % none
 AngularVelocityNoise = [0.005 0.005 0.005];      % (rad/s)²
@@ -108,4 +98,5 @@ sensor.noise.noise_state(23:25) = GeomagneticVectorNoise;
 sensor.noise.noise_state(26:28) = MagnetometerBiasNoise;
 
 %% Cleanup & Saving
-save("PROCESSED_DATA\Sensor_Tables.mat","sensor")
+save("Vehicle Parameters/PROCESSED_DATA\Sensor_Tables.mat","sensor");
+clearvars -except sim

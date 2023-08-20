@@ -20,10 +20,14 @@
 % 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Startup
+clearvars -except sim
+
 %% Chassis Constants
 chassis.mass.m_unsprung = [6 6 6 6] + ([8 8 8 8] .* sim.top_parameters.MOTOR_ENABLE); % kg
 chassis.mass.m_driver = 60; % kg
 chassis.mass.m_body = 180; % kg
+chassis.mass.m_all = chassis.mass.m_body + sum(chassis.mass.m_unsprung) + chassis.mass.m_driver;
 chassis.mass.Iveh = [41.78 1.22 -41.28; 1.22 207.92 -0.32; -41.28 -0.32 209.31]; % kg*m^2
 
 chassis.geometry.l = [0.772 0.772]; % vehicle wheelbase for PER23 [front rear] (m)
@@ -36,4 +40,5 @@ chassis.aero.Cd = 1.149; % Coefficient of drag (dimensionless)
 chassis.aero.Cl = 2.11014; % Coefficient of lift (dimensionless)
 
 %% Cleaning up & Saving
-save("PROCESSED_DATA\Chassis_Tables.mat","chassis");
+save("Vehicle Parameters/PROCESSED_DATA\Chassis_Tables.mat","chassis");
+clearvars -except sim

@@ -4,12 +4,9 @@
 % TOY   - time optimal yaw
 
 %% Startup
-% Run startup.m before running this file. Run Track_Tables after running
-% this file
-clearvars -except S1 S2 S3 S4 deg2rad l steer_slope CENTER_STEER_ANGLE_MAX ALL_SWEEP_DATA out sim
-clc
-
-load("Simulation_Data_Input\PROCESSED_DATA\Sweep_Tables.mat");
+clearvars -except sim
+load("PROCESSED_DATA\Sweep_Tables.mat");
+load("PROCESSED_DATA\Yaw_Sweep_Data.mat");
 
 %% Parameters
 max_steering_vel = 22; % m/s
@@ -19,10 +16,6 @@ dy = 0.05; % rad/s
 n = 3;
 
 %% Simulation Conditions & Data
-Digital_Signals = out.Digital_Signals;
-Vehicle_Signals = out.Vehicle_Signals;
-Driver_signals = out.Driver_Signals;
-
 steering_ref = ALL_SWEEP_DATA.ccw_steering(:,2);
 
 num2 = sum(steering_ref == 0) / 2;
@@ -32,8 +25,6 @@ velocity_grid = reshape(ALL_SWEEP_DATA.ccw_steering(:,1), [num3 num2]);
 yaw_rate_grid = reshape(ALL_SWEEP_DATA.ccw_steering(:,2), [num3 num2]);
 
 %% Extract Raw Data
-% torques = Vehicle_Signals.trn.motor_torque>Data(:,4);
-
 theta = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
 omega_m = Driver_signals.Omega.Data;
 yaw_rates = Driver_signals.r.Data;
@@ -43,8 +34,6 @@ ydot = Driver_signals.Vel.ydot.Data;
 battery_I = Digital_Signals.Power_Sensors.batt_I.Data;
 battery_V = Digital_Signals.Power_Sensors.batt_V.Data;
 
-counter = out.Sweep_Generator.counter.Data;
-
 %% Process Raw Data into Clean Data
 end_positions = [find(counter == 0); length(counter)];  % indicies for the end of each PCoGV & CCSA setpoint
 omega_mean = mean([omega_m(:,3) omega_m(:,4)], 2); % mean rear tires angular velocity (rad/s)
@@ -53,8 +42,6 @@ velocities = sqrt(xdot.^2 + ydot.^2);      % vehicle PCoGV (m/s)
 yaw_rate = reshape(yaw_rates(end_positions), [num3 num2]);
 velocity = reshape(velocities(end_positions), [num3 num2]);
 steering = reshape(theta(end_positions), [num3 num2]);
-%torque = reshape(torques(end_positions), [num3 num2]);
-%power_OUT = reshape(torques(end_positions) .* omega_mean(end_positions), [num3 num2]);
 power_IN = reshape(battery_I(end_positions) .* battery_V(end_positions), [num3 num2]);
 
 %% Calculate All RAW Lookup Tables
@@ -115,21 +102,7 @@ ft = 'pchipinterp';
 steering_angle_table = feval(fitresult4, limit_velocity_grid2, limit_yaw_rate_grid);
 steering_angle_table(1,:) = 0;
 
-%% TOY Bias (adjusting vehicle yaw rate to improve performance)
-% x = steering.*steer_slope; % rack displacement (m)
-% theta_left = deg2rad.*((S1*x.^3) - (S2*x.^2) + (S3.*x) - S4); % front left tire angle (rad)
-% theta_right = deg2rad.*((S1*x.^3) + (S2*x.^2) + (S3.*x) + S4); % front right tire angle (rad)
-% theta_avg = mean([theta_left; theta_right]); % mean front tire angles (rad)
-% 
-% yaw_rate_TOY = velocity .* theta_avg ./ sum(l); % TOY (rad/s)
-% TOY_error = yaw_rate_TOY - yaw_rate; % error between vehicle steady state yaw, and correspond TOY at the same PCoGV & CCSA
-% 
-% %% Final Calculations
-% skidpad_radius = 7.5.*ones(num3, num2); % m
-% vehicle_e = power_OUT ./ power_IN; % vehicle overall power efficiency
-% radius = velocity ./ yaw_rate; % vehicle turning radius as function of PCoGV & CCSA
-
-%% Populate TVS Struct
+%% Populate TVS & Driver Structs with Yaw Data
 tvs.yaw_control.max_v_bp = max_v_bp;
 tvs.yaw_control.max_s_bp = max_s_bp;
 tvs.yaw_control.max_yaw_table_ref = max_yaw_table_ref;
@@ -141,12 +114,87 @@ driver.control.steering_angle_table = steering_angle_table;
 driver.control.max_yaw_table = max_yaw_table;
 driver.control.max_theta_table = max_theta_table;
 
-%% Cleaning up & Saving
-clearvars -except tvs driver fitresult5
+%% Power Control Law
+tvs.power_control.dTx = 0.01; % Nm
+tvs.power_control.min_velocity_regen = 1.4; % m/s
 
-save("PROCESSED_DATA\TVS_Tables.mat", "tvs");
-save("PROCESSED_DATA\Driver_Tables.mat", "driver");
-save("PROCESSED_DATA\Yaw_Tables.mat", "fitresult5");
+tvs.power_control.ABS_MIN_TORQUE = [0 0 0 0]; % Nm
+tvs.power_control.ABS_MAX_TORQUE = [25 25 25 25]; % Nm
+tvs.power_control.ABS_MAX_TRQ_CMD = dot(tvs.power_control.ABS_MAX_TORQUE, sim.top_parameters.MOTOR_ENABLE);
+tvs.power_control.ABS_MIN_TRQ_CMD = dot(tvs.power_control.ABS_MIN_TORQUE, sim.top_parameters.MOTOR_ENABLE);
+
+MOTOR_CURRENT_LIMIT = [55 55 55 55]; % A
+tvs.power_control.ABS_MAX_I_FLOW = dot(MOTOR_CURRENT_LIMIT, sim.top_parameters.MOTOR_ENABLE);
+
+dT_motor = 25; % degC
+dT_motor_controller = 50; % degC
+
+ABS_MAX_MOTOR_I = dot(sim.top_parameters.MOTOR_ENABLE,sim.range.MOTOR_CURRENT_MAX.*ones(1,4));
+ABS_MAX_MOTOR_CONTROLLER_I = dot(sim.top_parameters.MOTOR_ENABLE,sim.range.MOTOR_CONTROLLER_CURRENT_MAX.*ones(1,4));
+
+tvs.power_control.motor_controller_t_bp = [sim.range.MOTOR_CONTROLLER_TEMPERATURE_MAX-dT_motor_controller sim.range.MOTOR_CONTROLLER_TEMPERATURE_MAX];
+tvs.power_control.motor_controller_I_table = [ABS_MAX_MOTOR_CONTROLLER_I 0];
+
+tvs.power_control.motor_t_bp = [sim.range.MOTOR_TEMPERATURE_MAX-dT_motor sim.range.MOTOR_TEMPERATURE_MAX];
+tvs.power_control.motor_I_table = [ABS_MAX_MOTOR_I 0];
+
+%% Yaw Control Law
+tvs.yaw_control.dy = 0.2; % rad/s^2
+tvs.yaw_control.torque_sat_const = 0.5;
+tvs.yaw_control.dB = 0.001; % rad/s^2
+
+tvs.yaw_control.ang_acc_hystersesis = 0.1; % rad/s^2
+tvs.yaw_control.yaw_filter = 0.1;
+
+tvs.yaw_control.deadband_angle = 12;
+tvs.yaw_control.TVS_Intensity = 1;
+tvs.yaw_control.P = 20;
+tvs.yaw_control.I = 0;
+
+%% Traction Control Law
+tvs.traction_control.Vth = 2; % m/s
+tvs.traction_control.low_V_SA = 0.001; % rad
+
+%% Torque Control Law
+wc = 0; % rad/s
+wm = 675; % rad/s
+wf = 1150; % rad/s
+dK = 0.025;
+
+tvs.torque_control.omega_bp = [wc wm wf]; % rad/s
+k_linear_bp = 0.05:0.05:0.95;
+
+k_actual_1 = zeros(1,length(k_linear_bp));
+k_actual_2 = ((wm/wf).*(1-k_linear_bp)) + k_linear_bp;
+k_actual_3 = ones(1,length(k_linear_bp));
+
+k_actual = [k_actual_1; k_actual_2; k_actual_3];
+tvs.torque_control.k_actual = [[0; 0; 0;],[0; 0; 0;],k_actual,[1; 1; 1],[1; 1; 1]];
+tvs.torque_control.k_linear_bp = [0 dK k_linear_bp 1-dK 1];
+
+%% Driver Model
+driver.control.pressure_filter = 0.05;
+driver.control.brake_gain = 5;
+driver.control.P_Driver = 1;
+driver.control.P_Steering_Adjust = 5;
+driver.control.P_High_Speed = 0.5;
+driver.control.P_Straight_Adjust = 15;
+driver.control.axb = -5;     % m/s^2 Braking decceleration
+driver.control.dt_ON = 7.5;  % time (s) that each data point is active
+driver.control.dt_OFF = 4.5; % time (s) between different velocities for vehicle recovery
+
+% indicies denoting each quadrant, and .5 denoting axis CCW starting from +Y axis
+driver.vision.indicies = [3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4 0.5 1 1.5 2 2.5 3 3.5 4];
+driver.vision.dIndex = 50;                % number of future track points
+driver.vision.q_thresh = 0.01;            % threshhold between quadrants in cartesian plane
+driver.vision.dx = 0.1;                   % distance between 2 track points
+
+%% Cleaning up & Saving
+save("Vehicle Parameters/PROCESSED_DATA\TVS_Tables.mat", "tvs");
+save("Vehicle Parameters/PROCESSED_DATA\Driver_Tables.mat", "driver");
+save("Vehicle Parameters/PROCESSED_DATA\Yaw_Tables.mat", "fitresult5");
+
+clearvars -except sim
 
 %% Data Viewing
 % scatter3(limit_velocity_grid,limit_steering_grid,max_yaw_table_ref)

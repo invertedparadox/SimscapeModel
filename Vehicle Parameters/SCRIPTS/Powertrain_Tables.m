@@ -17,16 +17,17 @@
 % max_torque_table - max_torque_table = f(speed_bp)
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Startup
+clearvars -except sim
+
 %% Gearbox
 ns = 27; % number of teeth on PER23 sun gear
 nr = 111; % number of teeth on PER23 ring gear
 np1 = 49; % number of teeth on PER23 stage 1 planet gear
 np2 = 26; % number of teeth on PER23 stage 2 planet gear
 PER23_gr = ((np1 / ns) * (nr / np2)) + 1;
-PER23_gr = 7.5;
 
 powertrain.gearbox.gr = [PER23_gr PER23_gr PER23_gr PER23_gr];
-powertrain.gearbox.gr = [5 5 10 10];
 powertrain.gearbox.ge = [0.9 0.9 0.9 0.9];
 
 %% Motor
@@ -63,4 +64,5 @@ powertrain.brake.mu_kinetic = 0.4; % none
 powertrain.brake.mu_static = 0.5; % none
 
 %% Cleaning up & Saving
-save("PROCESSED_DATA\Powertrain_Tables.mat","powertrain");
+save("Vehicle Parameters/PROCESSED_DATA\Powertrain_Tables.mat","powertrain");
+clearvars -except sim
