@@ -24,7 +24,7 @@
 clearvars -except sim
 
 %% Chassis Constants
-chassis.mass.m_unsprung = [6 6 6 6] + ([8 8 8 8] .* sim.top_parameters.MOTOR_ENABLE); % kg
+chassis.mass.m_unsprung = [5 5 5 5] + ([8 8 8 8] .* sim.top_parameters.MOTOR_ENABLE); % kg
 chassis.mass.m_driver = 60; % kg
 chassis.mass.m_body = 180; % kg
 chassis.mass.m_all = chassis.mass.m_body + sum(chassis.mass.m_unsprung) + chassis.mass.m_driver;

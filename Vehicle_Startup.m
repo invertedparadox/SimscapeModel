@@ -8,10 +8,10 @@ addpath(genpath("Vehicle Subsystems"));
 addpath(genpath("Code_Generation_Project"));
 
 %% Simulation Top Parameters
-sim.top_parameters.YAW_ENABLE = 1;  % Enable yaw rate sweeping when set to 0
+sim.top_parameters.YAW_ENABLE = 0;  % Enable yaw rate sweeping when set to 0
 sim.top_parameters.TVS_ENABLE = 0;  % Enable TVS when set to 1
 sim.top_parameters.TRACTION_ENABLE = 0; % Enable variable objective function coefficients when set to 1
-sim.top_parameters.MOTOR_ENABLE = [1 1 1 1]; % Enable motors when set to 1 
+sim.top_parameters.MOTOR_ENABLE = [0 0 1 1]; % Enable motors when set to 1 
 
 %% Simulation Sample Rates
 sim.timing.control_timing = 0.01; % s
@@ -94,7 +94,7 @@ sim.range.MAX_STEERING_ADJUST = 15; % deg
 sim.range.MAX_DTHETA_DRIVER = 360; % deg/s
 
 %% Update Tables
-Yaw_Tables;
+% Yaw_Tables;
 Chassis_Tables;
 Suspension_Tables;
 Powertrain_Tables;

@@ -4,15 +4,19 @@
 % TOY   - time optimal yaw
 
 %% Startup
-clearvars -except sim
+% clearvars -except sim
 load("PROCESSED_DATA\Sweep_Tables.mat");
-load("PROCESSED_DATA\Yaw_Sweep_Data.mat");
+% load("PROCESSED_DATA\Yaw_Sweep_Data.mat");
+
+Digital_Signals = out_18in.Digital_Signals;
+Driver_Signals = out_18in.Driver_Signals;
+counter = out_18in.Sweep_Generator.counter.Data;
 
 %% Parameters
 max_steering_vel = 22; % m/s
-dv = 0.5; % m/s
-ds = 5; % deg
-dy = 0.05; % rad/s
+dv = 0.5; % m/s    velocity breakpoint for yaw map
+ds = 5; % deg      steering angle breakpoint for yaw map
+dy = 0.05; % rad/s yaw rate breakpoint for max yaw map
 n = 3;
 
 %% Simulation Conditions & Data
@@ -26,10 +30,10 @@ yaw_rate_grid = reshape(ALL_SWEEP_DATA.ccw_steering(:,2), [num3 num2]);
 
 %% Extract Raw Data
 theta = Digital_Signals.Corner_Dynamics_Sensors.theta.Data;
-omega_m = Driver_signals.Omega.Data;
-yaw_rates = Driver_signals.r.Data;
-xdot = Driver_signals.Vel.xdot.Data;
-ydot = Driver_signals.Vel.ydot.Data;
+omega_m = Driver_Signals.Omega.Data;
+yaw_rates = Driver_Signals.r.Data;
+xdot = Driver_Signals.Vel.xdot.Data;
+ydot = Driver_Signals.Vel.ydot.Data;
 
 battery_I = Digital_Signals.Power_Sensors.batt_I.Data;
 battery_V = Digital_Signals.Power_Sensors.batt_V.Data;
@@ -39,10 +43,15 @@ end_positions = [find(counter == 0); length(counter)];  % indicies for the end o
 omega_mean = mean([omega_m(:,3) omega_m(:,4)], 2); % mean rear tires angular velocity (rad/s)
 velocities = sqrt(xdot.^2 + ydot.^2);      % vehicle PCoGV (m/s)
 
-yaw_rate = reshape(yaw_rates(end_positions), [num3 num2]);
-velocity = reshape(velocities(end_positions), [num3 num2]);
-steering = reshape(theta(end_positions), [num3 num2]);
-power_IN = reshape(battery_I(end_positions) .* battery_V(end_positions), [num3 num2]);
+num_data_not_collected = num3*num2 - length(end_positions);
+yaw_rate_vector = [yaw_rates(end_positions); zeros(num_data_not_collected,1)];
+
+yaw_rate = reshape(yaw_rate_vector, [num3 num2]);
+% velocity = reshape(velocities(end_positions), [num3 num2]);
+velocity = reshape(sim.top_parameters.selected_sweep(:,1),[num3 num2]);
+% steering = reshape(theta(end_positions), [num3 num2]);
+steering = reshape(sim.top_parameters.selected_sweep(:,2),[num3 num2]);
+% power_IN = reshape(battery_I(end_positions) .* battery_V(end_positions), [num3 num2]);
 
 %% Calculate All RAW Lookup Tables
 [max_yaw_v, ~] = max(yaw_rate);
@@ -190,11 +199,11 @@ driver.vision.q_thresh = 0.01;            % threshhold between quadrants in cart
 driver.vision.dx = 0.1;                   % distance between 2 track points
 
 %% Cleaning up & Saving
-save("Vehicle Parameters/PROCESSED_DATA\TVS_Tables.mat", "tvs");
-save("Vehicle Parameters/PROCESSED_DATA\Driver_Tables.mat", "driver");
-save("Vehicle Parameters/PROCESSED_DATA\Yaw_Tables.mat", "fitresult5");
-
-clearvars -except sim
+% save("Vehicle Parameters/PROCESSED_DATA\TVS_Tables.mat", "tvs");
+% save("Vehicle Parameters/PROCESSED_DATA\Driver_Tables.mat", "driver");
+% save("Vehicle Parameters/PROCESSED_DATA\Yaw_Tables.mat", "fitresult5");
+% 
+% clearvars -except sim
 
 %% Data Viewing
 % scatter3(limit_velocity_grid,limit_steering_grid,max_yaw_table_ref)

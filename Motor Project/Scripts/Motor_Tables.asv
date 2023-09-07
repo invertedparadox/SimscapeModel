@@ -127,20 +127,13 @@ RPM_FW_Model = polyfit(voltages, RPM_Field_Weakening, 1);
 RPM_FW_MAX_bkpt = polyval(RPM_FW_Model, voltage_sweep)';
 
 %% Generate Table of Voltage Data
-w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening./rpm2radps; motor_constants(1,:)];
 v_table_max = repmat(voltages,3,1);
 k_table_max = [zeros(1,num_datasets); ones(2,num_datasets)];
+w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening./rpm2radps; motor_constants(1,:)];
 
-w_table_max = w_table_max(:);
-v_table_max = v_table_max(:);
-k_table_max = k_table_max(:);
+scatter3(w_table_max,v_table_max,k_table_max)
 
-%% Generate Table Envelope
-w_table_all = [w_table_min; w_table_max];
-v_table_all = [v_table_min; v_table_max];
-k_table_all = [k_table_min; k_table_max];
-
-scatter3(w_table_all,v_table_all,k_table_all)
+%% Generate 
 
 %% Prepare Max Torque Lookup Table
 max_torque_grid = griddata(all_rpm,all_voltage,all_torque,rpm_grid,voltage_grid);

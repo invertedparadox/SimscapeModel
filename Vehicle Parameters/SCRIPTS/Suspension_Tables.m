@@ -43,10 +43,15 @@ S4 = 0.1061; % rack displacement to tire angle constant coefficient (deg)
 %% Tire
 suspension.tire.WIDTH = 0.1524; % [m] tire width
 suspension.tire.RIM_RADIUS = 0.1524; % [m] tire rim radius
-suspension.tire.RE = 0.223; % [m] tire effective radius
-suspension.tire.UNLOADED_RADIUS = suspension.tire.RE + 0.002; % m
+
+% suspension.tire.RE = 0.223; % [m] tire effective radius
+% suspension.tire.UNLOADED_RADIUS = 0.2286; % m
+
+suspension.tire.RE = 0.1970; % [m] tire effective radius
+suspension.tire.UNLOADED_RADIUS = 0.2024; % m
+
 suspension.tire.br = 1e-2; % [Nm*s/rad] tire rotational damping coefficient
-suspension.tire.IYY = 0.3; % [kg*m^2] tire inertia about rotational axis
+suspension.tire.IYY = 0.25; % [kg*m^2] tire inertia about rotational axis
 suspension.tire.VERTICAL_DAMPING = 500; % [Ns/m] tire vertical damping
 
 Fz = [0 204.13 427.04 668.1 895.72 1124.40 1324.40]; % tire normal force sample points (N)

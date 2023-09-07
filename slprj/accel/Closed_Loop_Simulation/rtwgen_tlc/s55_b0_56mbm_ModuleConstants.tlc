@@ -1,4 +1,4 @@
-%implements s55_b0_ou76l_ModuleConstants "C"
+%implements s55_b0_56mbm_ModuleConstants "C"
 
 %function ModuleConstants(block) Output
 
