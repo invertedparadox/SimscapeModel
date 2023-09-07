@@ -29,18 +29,18 @@ sensor.gps.GPS_NOISE_FACTOR = 0.599; % none
 sensor.gps.r_GPS = randi([0 100]);
 
 % IMU performance
-sensor.imu.ACC_MAX = inf; % m/s^2
+sensor.imu.ACC_MAX = 1000; % m/s^2
 sensor.imu.ACC_RES = 0; % m/(s^2*LSB)
 sensor.imu.ACC_BIAS = [0.05 0.05 0.05]; % m/s^2 MAX: 20 mg
 sensor.imu.ACC_SKEW = [ 100, 0, 0; 0, 100, 0; 0, 0, 100 ]; % %
 
-sensor.imu.GYR_MAX = inf; % rad/s
+sensor.imu.GYR_MAX = 100; % rad/s
 sensor.imu.GYR_RES = 0; % rad/(s*LSB)
 sensor.imu.GYR_BIAS = [0.25, 0.25, 0.25].*0.*(pi/180); % rad/s MAX: 1 deg
 sensor.imu.GYR_SKEW = [ 100, 0, 0; 0, 100, 0; 0, 0, 100 ]; % %
 sensor.imu.GYR_ACC_BIAS = [ 0, 0, 0 ]; % (rad/s)/(m/s^2)
 
-sensor.imu.MAG_MAX = inf; % uT
+sensor.imu.MAG_MAX = 10000; % uT
 sensor.imu.MAG_RES = 0; % uT/LSB
 sensor.imu.MAG_BIAS = [ 0, 0, 0 ]; % uT
 sensor.imu.MAG_SKEW = [ 100, 0, 0; 0, 100, 0; 0, 0, 100 ]; % %

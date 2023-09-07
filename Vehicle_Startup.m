@@ -1,5 +1,5 @@
 %% Startup
-clear;
+clear all;
 clc;
 
 %% File Management
@@ -116,9 +116,9 @@ load("PROCESSED_DATA\TVS_Tables.mat");
 load("PROCESSED_DATA\Sensor_Tables.mat");
 
 %% Select Track
-sim.top_parameters.selected_track = ALL_TRACK_DATA.(event_names(10)); % xy track data
-sim.top_parameters.selected_maxvm = MIN_TRACK_DATA.(event_names(10)); % section track data
-sim.top_parameters.selected_sweep = ALL_SWEEP_DATA.(sweep_names(1)); % driver control data 
+track.selected_track = ALL_TRACK_DATA.(event_names(10)); % xy track data
+track.selected_maxvm = MIN_TRACK_DATA.(event_names(10)); % section track data
+track.selected_sweep = ALL_SWEEP_DATA.(sweep_names(1)); % driver control data 
 
 %% Simulation Initial Conditions
 % battery
@@ -170,4 +170,4 @@ sim.IC.Brake_Pressure_IC = 1; % Pa
 sim.IC.driver_input_IC = 1;
 
 %% Cleanup & Saving
-clearvars -except chassis driver powertrain sensor sim suspension tvs
+clearvars -except chassis driver powertrain sensor sim suspension tvs track
