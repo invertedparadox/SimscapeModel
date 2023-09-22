@@ -1,6 +1,6 @@
 %% Startup
-clear all
-clc
+% clear all
+% clc
 
 %% Parameters
 voltages = [340 330 320 310 300 290 280 270 260 250 240 230 220 210 190 180 170 160 150 140 130 120 110 100 90 80 70 60]; % the 28 voltages that plettenberg tested at
@@ -144,22 +144,44 @@ RPM_FW_Model = polyfit(voltages, RPM_Field_Weakening, 1);
 RPM_FW_MAX_bkpt = polyval(RPM_FW_Model, voltage_sweep)';
 
 %% Generate Table of Voltage Data
-w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening; motor_constants(1,:)];
-v_table_max = repmat(voltages,3,1);
-k_table_max = [zeros(1,num_datasets); ones(2,num_datasets)];
+% w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening; motor_constants(1,:)];
+% v_table_max = repmat(voltages,3,1);
+% k_table_max = [zeros(1,num_datasets); ones(2,num_datasets)];
 
-w_table_max = w_table_max(:);
-v_table_max = v_table_max(:);
-k_table_max = k_table_max(:);
+w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening];
+v_table_max = repmat(voltages,2,1);
+k_table_max = [zeros(1,num_datasets); ones(1,num_datasets)];
 
-scatter3(w_table_max,v_table_max,k_table_max);
+% do a jank scaling
+K_scale = repmat(FW_Zone_K./100,1,10);
+V_scale = repmat(FW_Zone_V,1,10) .* [1.2 1.1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2];
+W_scale = repmat(FW_Zone_W.*(8.749./0.2286),1,10);
+W_scale = W_scale .*polyval(RPM_FW_Model,V_scale(end,:)) ./ W_scale(end,:);
+
+w_table_max = [w_table_max(:); FW_Zone_W.*(8.749./0.2286); W_scale(:)];
+v_table_max = [v_table_max(:); FW_Zone_V; V_scale(:)];
+k_table_max = [k_table_max(:); FW_Zone_K./100; K_scale(:)];
+
+[xData, yData, zData] = prepareSurfaceData( w_table_max, v_table_max, k_table_max );
+ft = 'cubicinterp';
+[fitresult, gof] = fit( [xData, yData], zData, ft );
+
+k_grid_max = feval(fitresult,rpm_grid_min,voltage_grid_min);
+
+k_grid_max(isnan(k_grid_max)) = 1;
+
+scatter3(rpm_grid_min,voltage_grid_min,k_grid_max);
 
 %% Generate Table Envelope
-w_table_all = [w_table_min; w_table_max];
-v_table_all = [v_table_min; v_table_max];
-k_table_all = [k_table_min; k_table_max];
+% w_table_all = [w_table_min; w_table_max];
+% v_table_all = [v_table_min; v_table_max];
+% k_table_all = [k_table_min; k_table_max];
 
-scatter3(w_table_all,v_table_all,k_table_all)
+w_grid_all = [rpm_grid_min(:); rpm_grid_min(:)];
+v_grid_all = [voltage_grid_min(:); voltage_grid_min(:)];
+k_grid_all = [k_grid_min(:); k_grid_max(:)];
+
+scatter3(w_grid_all,v_grid_all,k_grid_all)
 
 %% Prepare Max Torque Lookup Table
 max_torque_grid = griddata(all_rpm,all_voltage,all_torque,rpm_grid,voltage_grid);
