@@ -1,8 +1,0 @@
-This file is the manifest for the generated code from model 'Throttle'.
-C:\Users\Inver\Documents\GitHub\SimscapeModel\Motor Project\Throttle_ert_rtw\Throttle.c
-C:\Users\Inver\Documents\GitHub\SimscapeModel\Motor Project\Throttle_ert_rtw\Throttle_data.c
-C:\Users\Inver\Documents\GitHub\SimscapeModel\Motor Project\Throttle_ert_rtw\ert_main.c
-C:\Users\Inver\Documents\GitHub\SimscapeModel\Motor Project\Throttle_ert_rtw\Throttle.h
-C:\Users\Inver\Documents\GitHub\SimscapeModel\Motor Project\Throttle_ert_rtw\Throttle_types.h
-C:\Users\Inver\Documents\GitHub\SimscapeModel\Motor Project\Throttle_ert_rtw\rtwtypes.h
-C:\Users\Inver\Documents\GitHub\SimscapeModel\Motor Project\Throttle_ert_rtw\Throttle_manifest.txt
