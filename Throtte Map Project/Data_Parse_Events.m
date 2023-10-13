@@ -21,16 +21,23 @@ opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 opts = setvaropts(opts, "VarName209", "TrimNonNumeric", true);
 opts = setvaropts(opts, "VarName209", "ThousandsSeparator", ",");
-accel_data = readtable("C:\Users\Inver\OneDrive\Desktop\Data Analysis V1\thtl_limit_accel_4-21-23.csv", opts);
+accel_data = readtable("C:\Users\Inver\OneDrive\Documents\GitHub\SimscapeModel\Throtte Map Project\thtl_limit_accel_4-21-23.csv", opts);
 accel_data = table2array(accel_data);
 
 % Data Locations for accel_data
-Wheel_Speed_Index_a = 52;      % corresponds to AZ: left_speed_mc
-Battery_IV_a = 113;            % corresponds to DI: pack_current
-Velocity_Index_a = 147;        % Corresponds to EQ: gps_vel_n
-LL_Index_a = 155;              % corresponds to EY: latitude
-Accelerometer_Index_a = 160;   % corresponds to FD: imu_accel_x
-Throttle_Index_a = 192;        % corresponds to GJ: throttle
+% Wheel_Speed_Index_a = 52;      % corresponds to AZ: left_speed_mc
+% Battery_IV_a = 113;            % corresponds to DI: pack_current
+% Velocity_Index_a = 147;        % Corresponds to EQ: gps_vel_n
+% LL_Index_a = 155;              % corresponds to EY: latitude
+% Accelerometer_Index_a = 160;   % corresponds to FD: imu_accel_x
+% Throttle_Index_a = 192;        % corresponds to GJ: throttle
+
+Wheel_Speed_Index_a = 32;      % corresponds to AF: left_speed_mc
+Battery_IV_a = 77;             % corresponds to BY: pack_current
+Velocity_Index_a = 102;        % Corresponds to CX: gps_vel_n
+LL_Index_a = 110;              % corresponds to DF: latitude
+Accelerometer_Index_a = 115;   % corresponds to DK: imu_accel_x
+Throttle_Index_a = 147;        % corresponds to EQ: throttle
 
 opts = delimitedTextImportOptions("NumVariables", 212);
 opts.DataLines = [5, Inf];
@@ -41,16 +48,23 @@ opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 opts = setvaropts(opts, "VarName212", "TrimNonNumeric", true);
 opts = setvaropts(opts, "VarName212", "ThousandsSeparator", ",");
-endur_data = readtable("C:\Users\Inver\OneDrive\Desktop\Data Analysis V1\endurance_1_4_21_23.csv", opts);
+endur_data = readtable("C:\Users\Inver\OneDrive\Documents\GitHub\SimscapeModel\Throtte Map Project\endurance_1_4_21_23.csv", opts);
 endur_data = table2array(endur_data);
 
 % Data Locations for endur_data
-Wheel_Speed_Index_e = 56;      % corresponds to BD: left_speed_mc
-Battery_IV_e = 117;            % corresponds to DI: pack_current
-Velocity_Index_e = 151;        % Corresponds to EU: gps_vel_n
-LL_Index_e = 159;              % corresponds to FC: latitude
-Accelerometer_Index_e = 164;   % corresponds to FH: imu_accel_x
-Throttle_Index_e = 196;        % corresponds to GN: throttle
+% Wheel_Speed_Index_e = 56;      % corresponds to BD: left_speed_mc
+% Battery_IV_e = 117;            % corresponds to DI: pack_current
+% Velocity_Index_e = 151;        % Corresponds to EU: gps_vel_n
+% LL_Index_e = 159;              % corresponds to FC: latitude
+% Accelerometer_Index_e = 164;   % corresponds to FH: imu_accel_x
+% Throttle_Index_e = 196;        % corresponds to GN: throttle
+
+Wheel_Speed_Index_e = 32;      % corresponds to AF: left_speed_mc
+Battery_IV_e = 77;             % corresponds to BY: pack_current
+Velocity_Index_e = 102;        % Corresponds to CX: gps_vel_n
+LL_Index_e = 110;              % corresponds to DF: latitude
+Accelerometer_Index_e = 115;   % corresponds to DK: imu_accel_x
+Throttle_Index_e = 147;        % corresponds to EQ: throttle
 
 % Vehicle Parameters
 PER23_gr = 8.75;             % rear driveline gear ratio  [none]
@@ -595,28 +609,6 @@ xlabel("FW Tire Speed (m/s)")
 ylabel("FW Throttle (%)")
 zlabel("FW Current (A)")
 legend("Acceleration","Endurance","Max Current")
-
-%% Construct Lookup Tables (WIP)
-% m = 55/100;
-% throttle_sweep_PL = 0:10:100;
-% MAX_I_LIMIT = polyval([m 0],throttle_sweep_PL);
-% 
-% s_selection = ground_speed(START(10):STOP(10)).*PER23_gr./RE;
-% current_selection_motor = i_selection./2;
-% coeffs = polyfit(s_selection,current_selection_motor,2);
-% fitted_values = polyval(coeffs, s_selection);
-% 
-% coeffs2 = polyfit(FW_Zone_K./100,FW_Zone_W,2);
-% fitted_values_2 = polyval(coeffs2,FW_Zone_K./100);
-% 
-% plot(s_selection, current_selection_motor)
-% hold on
-% plot(s_selection, fitted_values)
-% 
-% V_sweep = 0:0.1:35;
-% I_max = V_sweep ./ avg_Rint;
-% Throttle_ABS_MAX = I_max .* 100 ./ (2.*55);
-% Throttle_MAX = I_max ./ (0.4767.*2);
 
 %% Lookup Tables (WIP)
 % Table 1: Current
