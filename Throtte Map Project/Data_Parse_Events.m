@@ -170,6 +170,7 @@ event_r = [];           % all battery internal resistance estimates [ohm]
 FW_Zone_W = [];      % all chassis speed for field weakening [rad/s]
 FW_Zone_K = [];      % all throttle command setpoint for field weakening    [%]
 FW_Zone_I = [];      % all motor current for field weakening                [A]
+FW_Zone_V = [];      % all motor controller voltage for field weakening     [V]
 
 %% Extract All Acceleration Data
 % all recorded timestamps [s]
@@ -396,6 +397,7 @@ for i = 1:length(START)
     FW_Zone_W = cat(1, FW_Zone_W, s_selection(index_I));
     FW_Zone_K = cat(1, FW_Zone_K, max(k_selection));
     FW_Zone_I = cat(1, FW_Zone_I, max_I/2);
+    FW_Zone_V = cat(1, FW_Zone_V, v_selection(index_I));
 end
 
 %% Extract All Endurance Data
