@@ -148,26 +148,26 @@ v_table_max = repmat(voltages,2,1);
 k_table_max = [zeros(1,num_datasets); ones(1,num_datasets)];
 
 % smooth out data collected in acceleration
-[xData, yData, zData] = prepareSurfaceData( FW_Zone_W, FW_Zone_V, FW_Zone_K );
+[xData, yData, zData] = prepareSurfaceData( W_temp, V_temp, K_temp );
 ft = fittype( 'a*x+b*y+c*x^2+d*y^2', 'independent', {'x', 'y'}, 'dependent', 'z' );
 opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
 opts.Display = 'Off';
 opts.StartPoint = [0.757740130578333 0.743132468124916 0.392227019534168 0.706046088019609];
 [fitresult, gof] = fit( [xData, yData], zData, ft, opts );
 
-FW_Zone_K_smooth = feval(fitresult,FW_Zone_W,FW_Zone_V);
+FW_Zone_K_smooth = feval(fitresult,W_temp,V_temp);
 
-scatter3(FW_Zone_W,FW_Zone_V,FW_Zone_K_smooth);
+scatter3(W_temp,V_temp,FW_Zone_K_smooth);
 
 % do a jank scaling instead
-K_scale = repmat(FW_Zone_K./100,1,10);
-V_scale = repmat(FW_Zone_V,1,10) .* [1.2 1.1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2];
-W_scale = repmat(FW_Zone_W.*(8.749./0.2286),1,10);
+K_scale = repmat(K_temp./100,1,10);
+V_scale = repmat(V_temp,1,10) .* [1.2 1.1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2];
+W_scale = repmat(W_temp.*(8.749./0.2286),1,10);
 W_scale = W_scale .*polyval(RPM_FW_Model,V_scale(end,:)) ./ W_scale(end,:);
 
-w_table_max = [w_table_max(:); FW_Zone_W.*(8.749./0.2286); W_scale(:)];
-v_table_max = [v_table_max(:); FW_Zone_V; V_scale(:)];
-k_table_max = [k_table_max(:); FW_Zone_K./100; K_scale(:)];
+w_table_max = [w_table_max(:); W_temp.*(8.749./0.2286); W_scale(:)];
+v_table_max = [v_table_max(:); V_temp; V_scale(:)];
+k_table_max = [k_table_max(:); K_temp./100; K_scale(:)];
 
 [xData, yData, zData] = prepareSurfaceData( w_table_max, v_table_max, k_table_max );
 ft = 'cubicinterp';
@@ -177,7 +177,8 @@ k_grid_max = feval(fitresult,rpm_grid_min,voltage_grid_min);
 
 k_grid_max(isnan(k_grid_max)) = 1;
 
-scatter3(rpm_grid_min,voltage_grid_min,k_grid_max);
+figure(315)
+surf(rpm_grid_min,voltage_grid_min,k_grid_max);
 
 %% Generate k Table Envelope
 w_grid_all = [rpm_grid_min(:); rpm_grid_min(:)];
