@@ -617,7 +617,8 @@ legend("Acceleration","Endurance","Max Current")
 
 % Plot example curve
 K_temp = linspace(min(FW_Zone_K),max(FW_Zone_K),100);
-V_temp = feval(VfuncK, K_temp)';
+V_temp = feval(VfuncK, K_temp);
+K_temp = K_temp';
 W_temp = feval(WfuncKV, K_temp, V_temp);
 figure(314)
 scatter3(FW_Zone_K, FW_Zone_V, FW_Zone_W)
