@@ -136,7 +136,7 @@ MOTOR_CURRENT_LIMIT = [55 55 55 55]; % A
 tvs.power_control.ABS_MAX_I_FLOW = dot(MOTOR_CURRENT_LIMIT, sim.top_parameters.MOTOR_ENABLE);
 
 dT_motor = 25; % degC
-dT_motor_controller = 50; % degC
+dT_motor_controller = 25; % degC
 
 ABS_MAX_MOTOR_I = dot(sim.top_parameters.MOTOR_ENABLE,sim.range.MOTOR_CURRENT_MAX.*ones(1,4));
 ABS_MAX_MOTOR_CONTROLLER_I = dot(sim.top_parameters.MOTOR_ENABLE,sim.range.MOTOR_CONTROLLER_CURRENT_MAX.*ones(1,4));
@@ -148,7 +148,7 @@ tvs.power_control.motor_t_bp = [sim.range.MOTOR_TEMPERATURE_MAX-dT_motor sim.ran
 tvs.power_control.motor_I_table = [ABS_MAX_MOTOR_I 0];
 
 %% Yaw Control Law
-tvs.yaw_control.dy = 0.2; % rad/s^2
+tvs.yaw_control.dy = 0.01; % rad/s^2
 tvs.yaw_control.torque_sat_const = 0.5;
 tvs.yaw_control.dB = 0.001; % rad/s^2
 
@@ -158,7 +158,6 @@ tvs.yaw_control.yaw_filter = 0.1;
 tvs.yaw_control.deadband_angle = 12;
 tvs.yaw_control.TVS_Intensity = 1;
 tvs.yaw_control.P = 20;
-tvs.yaw_control.I = 0;
 
 %% Traction Control Law
 tvs.traction_control.Vth = 2; % m/s
