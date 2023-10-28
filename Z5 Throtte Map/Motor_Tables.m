@@ -1,6 +1,6 @@
 %% Startup
-% clear all
-% clc
+clear all
+clc
 
 %% Parameters
 voltages = [340 330 320 310 300 290 280 270 260 250 240 230 220 210 190 180 170 160 150 140 130 120 110 100 90 80 70 60]; % the 28 voltages that plettenberg tested at
@@ -10,7 +10,6 @@ V_resolution = 26; % Number of voltage breakpoints in lookup tables
 num_datasets = 28; % number of sweeps for motor data from plettenberg
 
 ABS_MAX_TORQUE = 25; % maximum torque in dataset [Nm]
-ABS_MAX_RPM = 1100;  % maximum motor rpm in all conditions [RPM]
 MOTOR_CURRENT_MAX = 70; % maximum torque set by motor controller [A]
 MOTOR_VOLTAGE_MAX = max(voltages); % max voltage in dataset [V]
 
@@ -25,7 +24,7 @@ all_torque = [];  % all raw motor shaft torque measuremnts (Ncm)
 counter = zeros(1, num_datasets);
 
 % table breakpoints
-rpm_sweep = linspace(0, ABS_MAX_RPM, RPM_resolution);  % motor shaft speed (rad/s)
+rpm_sweep = linspace(0, 1100, RPM_resolution);  % motor shaft speed (rad/s)
 torque_sweep = linspace(0, ABS_MAX_TORQUE(1), Tx_resolution);  % motor shaft torque (Nm)  
 voltage_sweep = linspace(0, MOTOR_VOLTAGE_MAX, V_resolution); % motor voltage (V)
 
@@ -38,6 +37,8 @@ P = zeros(1, 5);
 RPM_Field_Weakening = zeros(1, num_datasets);
 
 %% Import Sweep Data
+cd ..
+
 opts = spreadsheetImportOptions("NumVariables", 7);
 motor_data = zeros(69, 7, num_datasets);
 opts.DataRange = "A2:G70";
@@ -46,7 +47,7 @@ opts.VariableTypes = ["double", "double", "double", "double", "double", "double"
 
 for i = 1:1:num_datasets
     opts.Sheet = num2str(voltages(i)) + "V";
-    motor_data(:, :, i) = table2array(readtable("C:\Users\Inver\OneDrive\Documents\GitHub\SimscapeModel\Throtte Map Project\all_motor_data.xlsx", opts, "UseExcel", false));
+    motor_data(:, :, i) = table2array(readtable("Real_Data\all_motor_data.xlsx", opts, "UseExcel", false));
 
     all_voltage = [all_voltage; motor_data(:, 1, i)];
     all_current = [all_current; motor_data(:, 2, i)];
@@ -65,17 +66,10 @@ opts.VariableTypes = ["double"];
 
 for i = 1:1:num_datasets
     opts.Sheet = num2str(voltages(i)) + "V";
-    motor_constants(:,i) = table2array(readtable("C:\Users\Inver\OneDrive\Documents\GitHub\SimscapeModel\Throtte Map Project\all_motor_data.xlsx", opts, "UseExcel", false));
+    motor_constants(:,i) = table2array(readtable("Real_Data\all_motor_data.xlsx", opts, "UseExcel", false));
 end
 
-motor_constants(1,:) = motor_constants(1,:)*rpm2radps;
-
-%% Generate Table of min k
-rpm_sweep_min = linspace(0, max(motor_constants(1,:)), RPM_resolution);  % motor shaft speed (rad/s)
-voltage_sweep_min = linspace(min(voltages), max(voltages), V_resolution); % motor voltage (V)
-
-[rpm_grid_min,voltage_grid_min] = meshgrid(rpm_sweep_min,voltage_sweep_min);
-
+%% Generate Table of k Data
 VM = (ones(num_datasets,1)*voltages);
 WM = (ones(num_datasets,1)*motor_constants(1,:));
 
@@ -95,17 +89,7 @@ w_table_min = [w_table; zeros(num_datasets,1)];
 v_table_min = [v_table; voltages'];
 k_table_min = [k_table; zeros(num_datasets,1)];
 
-scatter3(w_table_min,v_table_min,k_table_min)
-
-[xData, yData, zData] = prepareSurfaceData( w_table_min, v_table_min, k_table_min );
-ft = 'cubicinterp';
-[fitresult, gof] = fit( [xData, yData], zData, ft, 'Normalize', 'on' );
-
-k_grid_min = feval(fitresult,rpm_grid_min,voltage_grid_min);
-
-k_grid_min(isnan(k_grid_min)) = 1;
-
-scatter3(voltage_grid_min,rpm_grid_min,k_grid_min)
+scatter3(w_table,v_table,k_table)
 
 %% Prepare Data for Fitting
 all_rpm = all_rpm .* rpm2radps; % motor shaft angular velocity (rad/s)
@@ -143,49 +127,20 @@ RPM_FW_Model = polyfit(voltages, RPM_Field_Weakening, 1);
 RPM_FW_MAX_bkpt = polyval(RPM_FW_Model, voltage_sweep)';
 
 %% Generate Table of Voltage Data
-w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening];
-v_table_max = repmat(voltages,2,1);
-k_table_max = [zeros(1,num_datasets); ones(1,num_datasets)];
+w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening./rpm2radps; motor_constants(1,:)];
+v_table_max = repmat(voltages,3,1);
+k_table_max = [zeros(1,num_datasets); ones(2,num_datasets)];
 
-% smooth out data collected in acceleration
-[xData, yData, zData] = prepareSurfaceData( FW_Zone_W, FW_Zone_V, FW_Zone_K );
-ft = fittype( 'a*x+b*y+c*x^2+d*y^2', 'independent', {'x', 'y'}, 'dependent', 'z' );
-opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
-opts.Display = 'Off';
-opts.StartPoint = [0.757740130578333 0.743132468124916 0.392227019534168 0.706046088019609];
-[fitresult, gof] = fit( [xData, yData], zData, ft, opts );
+w_table_max = w_table_max(:);
+v_table_max = v_table_max(:);
+k_table_max = k_table_max(:);
 
-FW_Zone_K_smooth = feval(fitresult,FW_Zone_W,FW_Zone_V);
+%% Generate Table Envelope
+w_table_all = [w_table_min; w_table_max];
+v_table_all = [v_table_min; v_table_max];
+k_table_all = [k_table_min; k_table_max];
 
-scatter3(FW_Zone_W,FW_Zone_V,FW_Zone_K_smooth);
-
-% do a jank scaling instead
-K_scale = repmat(FW_Zone_K./100,1,10);
-V_scale = repmat(FW_Zone_V,1,10) .* [1.2 1.1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2];
-W_scale = repmat(FW_Zone_W.*(8.749./0.2286),1,10);
-W_scale = W_scale .*polyval(RPM_FW_Model,V_scale(end,:)) ./ W_scale(end,:);
-
-w_table_max = [w_table_max(:); FW_Zone_W.*(8.749./0.2286); W_scale(:)];
-v_table_max = [v_table_max(:); FW_Zone_V; V_scale(:)];
-k_table_max = [k_table_max(:); FW_Zone_K./100; K_scale(:)];
-
-[xData, yData, zData] = prepareSurfaceData( w_table_max, v_table_max, k_table_max );
-ft = 'cubicinterp';
-[fitresult, gof] = fit( [xData, yData], zData, ft );
-
-k_grid_max = feval(fitresult,rpm_grid_min,voltage_grid_min);
-
-k_grid_max(isnan(k_grid_max)) = 1;
-
-scatter3(rpm_grid_min,voltage_grid_min,k_grid_max);
-
-%% Generate k Table Envelope
-w_grid_all = [rpm_grid_min(:); rpm_grid_min(:)];
-v_grid_all = [voltage_grid_min(:); voltage_grid_min(:)];
-k_grid_all = [k_grid_min(:); k_grid_max(:)];
-dk_grid_all = k_grid_max - k_grid_min;
-
-scatter3(rpm_grid_min,voltage_grid_min,dk_grid_all)
+scatter3(w_table_all,v_table_all,k_table_all)
 
 %% Prepare Max Torque Lookup Table
 max_torque_grid = griddata(all_rpm,all_voltage,all_torque,rpm_grid,voltage_grid);
@@ -244,8 +199,8 @@ I_grid = I_grid_RPM + (I_grid_NO_RPM .* ~NO_FW_ZONE);
 max_torque_grid_340V = max_torque_grid .* voltage_grid./max(max(voltage_grid));
 
 %% Cleaning up & Saving
-% clearvars -except CMD_grid efficiency_grid max_torque_grid rpm_sweep torque_sweep voltage_sweep I_grid
-% save("PROCESSED_DATA\Motor_Tables.mat");
+clearvars -except CMD_grid efficiency_grid max_torque_grid rpm_sweep torque_sweep voltage_sweep I_grid
+save("PROCESSED_DATA\Motor_Tables.mat");
 
 %% Data Viewing
 % scatter3(all_rpm, all_torque, all_efficiency)

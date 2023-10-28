@@ -6,12 +6,6 @@ clc;
 addpath(genpath("Vehicle Parameters"));
 addpath(genpath("Vehicle Subsystems"));
 addpath(genpath("Code_Generation_Project"));
-addpath(genpath("Z0 State Machine S1"));
-addpath(genpath("Z1 State Estimation"));
-addpath(genpath("Z2 Torque Vectoring"));
-addpath(genpath("Z3 Regeneration"));
-addpath(genpath("Z4 State Machine S2"));
-addpath(genpath("Z5 Throtte Map"));
 
 %% Simulation Top Parameters
 sim.top_parameters.YAW_ENABLE = 0;  % Enable yaw rate sweeping when set to 0
