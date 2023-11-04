@@ -1,0 +1,13 @@
+LIBRARY hTz0WIxwkE7MuOPybPder_cclib.dll
+EXPORTS
+    get_dll_checksum_hTz0WIxwkE7MuOPybPder
+    pivot_on_hTz0WIxwkE7MuOPybPder
+    find_pivot_column_hTz0WIxwkE7MuOPybPder
+    find_pivot_row_hTz0WIxwkE7MuOPybPder
+    add_slack_variables_hTz0WIxwkE7MuOPybPder
+    check_b_positive_hTz0WIxwkE7MuOPybPder
+    find_basis_variable_hTz0WIxwkE7MuOPybPder
+    print_optimal_vector_hTz0WIxwkE7MuOPybPder
+    simplex_hTz0WIxwkE7MuOPybPder
+    bigM_func_hTz0WIxwkE7MuOPybPder
+    get_checksum_source_info

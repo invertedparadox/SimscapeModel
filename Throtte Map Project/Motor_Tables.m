@@ -1,6 +1,6 @@
 %% Startup
-clear all
-clc
+% clear all
+% clc
 
 %% Parameters
 voltages = [340 330 320 310 300 290 280 270 260 250 240 230 220 210 190 180 170 160 150 140 130 120 110 100 90 80 70 60]; % the 28 voltages that plettenberg tested at
@@ -132,8 +132,6 @@ k_table_max = [zeros(1,num_datasets); ones(2,num_datasets)];
 w_table_max = [zeros(1,num_datasets); RPM_Field_Weakening./rpm2radps; motor_constants(1,:)];
 
 scatter3(w_table_max,v_table_max,k_table_max)
-
-%% Generate 
 
 %% Prepare Max Torque Lookup Table
 max_torque_grid = griddata(all_rpm,all_voltage,all_torque,rpm_grid,voltage_grid);

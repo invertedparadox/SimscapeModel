@@ -1,0 +1,12 @@
+EXPORTS
+    add_slack_variables_ZMUpIn8N2IK2ljHbu0qUiB @1
+    bigM_func_ZMUpIn8N2IK2ljHbu0qUiB @2
+    check_b_positive_ZMUpIn8N2IK2ljHbu0qUiB @3
+    find_basis_variable_ZMUpIn8N2IK2ljHbu0qUiB @4
+    find_pivot_column_ZMUpIn8N2IK2ljHbu0qUiB @5
+    find_pivot_row_ZMUpIn8N2IK2ljHbu0qUiB @6
+    get_checksum_source_info @7
+    get_dll_checksum_ZMUpIn8N2IK2ljHbu0qUiB @8
+    pivot_on_ZMUpIn8N2IK2ljHbu0qUiB @9
+    print_optimal_vector_ZMUpIn8N2IK2ljHbu0qUiB @10
+    simplex_ZMUpIn8N2IK2ljHbu0qUiB @11
